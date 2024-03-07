@@ -12,15 +12,12 @@
 #include "../protocol/STIP.h"
 
 
-using boost::asio::ip::udp;
+
 
 
 
 int main() {
     try {
-        std::cout << "MAX_UDP_SIZE: " << MAX_UDP_SIZE << std::endl;
-        std::cout << "MAX_STIP_DATA_SIZE: " << MAX_STIP_DATA_SIZE << std::endl;
-
         boost::asio::io_context io_context;
 
         udp::resolver resolver(io_context);
@@ -30,12 +27,17 @@ int main() {
         udp::socket socket(io_context);
         socket.open(udp::v4());
 
-
+        int datasize = 12;
         STIP_PACKET packet[1] = {};
         packet[0].header.command = 0x01;
-        packet[0].header.offset = 0x02;
         packet[0].header.packet_id = 0x03;
-        socket.send_to(boost::asio::buffer(packet), server_endpoint);
+        packet[0].header.size = sizeof(STIP_HEADER)+datasize;
+        std::string data = "I'm Ilya";
+        std::copy(data.begin(), data.end(), packet[0].data);
+
+        void* packet_ptr = &packet;
+        std::cout << "Packet size: " << packet[0].header.size << std::endl;
+        socket.send_to(boost::asio::buffer(packet_ptr,packet[0].header.size), server_endpoint);
 
         std::array<char, 128> recv_buffer;
         udp::endpoint sender_endpoint;

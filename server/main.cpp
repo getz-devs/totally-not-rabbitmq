@@ -19,26 +19,22 @@ int main() {
         udp::socket socket(io_context, udp::endpoint(udp::v4(), 12345));
 
         for (;;) {
-            STIP_PACKET sample[1];
+            STIP_PACKET sample[1] = {};
 
-//            sample[0].command = 0x01;
-//            sample[0].offset = 0x02;
-//            std::array<char, 300> recv_buf; // Буфер для принимаемых данных
-//            recv_buf.fill(0);
+
 
             udp::endpoint remote_endpoint; // Информация об удаленном клиенте
 
-
             // Принимаем данные от клиента
             socket.receive_from(boost::asio::buffer(sample), remote_endpoint);
-//            socket.receive()
+
 
             std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port() << std::endl;
-//            std::cout.write(recv_buf.data(), recv_buf.size());
-            std::cout << "Размер: " << sizeof(sample) << std::endl;
-            std::cout << "Команда: " << sample[0].header.command << std::endl;
-            std::cout << "Смещение: " << sample[0].header.offset << std::endl;
-            std::cout << "ID пакета: " << sample[0].header.packet_id << std::endl;
+//            std::cout << "Размер: " << std::endl;
+//            std::cout << "Команда: " << sample[0].header.command << std::endl;
+////            std::cout << "Смещение: " << sample[0].header.size << std::endl;
+//            std::cout << "ID пакета: " << sample[0].header.packet_id << std::endl;
+//            std::cout << "Данные: " << sample[0].data << std::endl;
 
 
             std::cout << std::endl;

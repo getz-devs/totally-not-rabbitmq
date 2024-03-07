@@ -10,7 +10,8 @@ file(DOWNLOAD
 
 include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
 
-add_executable(rabbit main.cpp)
+add_executable(rabbitServerL2 server/main.cpp)
+add_executable(rabbitClientL2 client/main.cpp)
 
 CPMAddPackage(
         NAME Boost
@@ -20,4 +21,5 @@ CPMAddPackage(
         OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_INCLUDE_LIBRARIES asio" # Note the escapes!
 )
 
-target_link_libraries(rabbit PRIVATE Boost::asio ws2_32)
+target_link_libraries(rabbitServerL2 PRIVATE Boost::asio ws2_32)
+target_link_libraries(rabbitClientL2 PRIVATE Boost::asio ws2_32)

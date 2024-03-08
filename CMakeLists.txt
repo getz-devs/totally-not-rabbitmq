@@ -4,10 +4,23 @@ set(CMAKE_CXX_STANDARD 17)          # Enable c++14 standard
 
 
 
-add_executable(rabbitServerL2 server/main.cpp
-        protocol/STIP.cpp)
-add_executable(rabbitClientL2 client/main.cpp
-        protocol/STIP.cpp)
+
+add_executable(rabbitServerL2
+        src/server/server.cpp
+        src/protocol/STIP.cpp
+        examples/server.cpp
+        src/protocol/Connection.cpp
+)
+
+add_executable(rabbitClientL2
+        src/client/client.cpp
+        src/protocol/STIP.cpp
+        examples/client.cpp
+        src/protocol/Connection.cpp
+)
+
+# add sources dir
+include_directories(src)
 
 target_compile_features(rabbitServerL2 PRIVATE cxx_std_17)
 target_compile_features(rabbitClientL2 PRIVATE cxx_std_17)

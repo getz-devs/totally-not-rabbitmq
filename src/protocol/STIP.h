@@ -32,7 +32,7 @@ public:
     STIP_Base(udp::socket &socket);
 
     void send_message(void *packet, int size);
-private:
+protected:
     void send_element_packet(void *packet, int size);
 
     udp::socket *socket;

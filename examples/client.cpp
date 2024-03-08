@@ -3,13 +3,10 @@
 //
 
 
-#include "main.h"
-
-
 #include <iostream>
 #include <boost/asio.hpp>
 
-#include "../protocol/STIP.h"
+#include "protocol/STIP.h"
 
 
 

@@ -14,9 +14,14 @@
 #include "utils/Timer.h"
 #include "protocol/Connection.h"
 
+class Session {
+public:
+     Session() = default;
+};
+
 
 class ConnectionManager;
-class Connection {
+class EndpointConnection {
 private:
     std::queue<STIP_PACKET> packetQueue;
     std::mutex mtx;
@@ -26,20 +31,21 @@ private:
     udp::endpoint endpoint;
     const udp::socket *socket;
     ConnectionManager *connectionManager;
+    std::unordered_map<uint32_t, Session> sessions;
 
 public:
-    Connection(udp::endpoint endpoint, const udp::socket &socket, ConnectionManager &connectionManager);
+    EndpointConnection(udp::endpoint endpoint, const udp::socket &socket, ConnectionManager &connectionManager);
 
     void addPacket(const STIP_PACKET &packet);
 
     STIP_PACKET getPacket();
-    ~Connection();
+    ~EndpointConnection();
 };
 
 
 class ConnectionManager {
 private:
-    std::unordered_map<udp::endpoint, Connection *> connections;
+    std::unordered_map<udp::endpoint, EndpointConnection *> connections;
     std::mutex mtx;
     const udp::socket *socket;
 

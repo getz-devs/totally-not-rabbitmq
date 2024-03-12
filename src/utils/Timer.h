@@ -42,6 +42,7 @@ public:
                     }
                 }
         });
+        timerThread.detach();
     }
 
     bool isRunning() {

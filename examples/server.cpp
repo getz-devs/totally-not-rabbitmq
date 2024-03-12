@@ -21,6 +21,7 @@ int main() {
 
 
         STIPServer server(socket);
+//        server.send_message()
         server.accept();
 //        for (;;) {
 //            STIP_PACKET sample[1] = {};

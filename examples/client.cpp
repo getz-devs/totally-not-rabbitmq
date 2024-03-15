@@ -7,11 +7,23 @@
 #include <boost/asio.hpp>
 
 #include "protocol/STIP.h"
-#include "client/client.h"
+#include "client/STIPClient.h"
+#include <csignal>
 
+void signalHandler( int signum ) {
+    std::cout << "Interrupt signal (" << signum << ") received.\n";
+
+    // cleanup and close up stuff here
+    // terminate program
+
+    exit(signum);
+}
 
 int main() {
     try {
+        signal(SIGABRT, signalHandler);
+        signal(SIGTERM, signalHandler);
+        signal (SIGINT, signalHandler);
         boost::asio::io_context io_context;
 
         udp::resolver resolver(io_context);
@@ -39,10 +51,16 @@ int main() {
 //        std::cout.write(recv_buffer.data(), len);
 //        std::cout << std::endl;
 
-        STIPClient client(socket, server_endpoint);
-        client.ping(server_endpoint);
+        STIPClient client(socket);
+        client.startListen();
 
-        io_context.run();
+        Connection* connection = client.connect(server_endpoint);
+        std::cout << "Connection accepted" << std::endl;
+//        connection->send("Hello, I'm Ilya");
+
+
+
+//        io_context.run();
     } catch (std::exception& e) {
         std::cerr << "Exception: " << e.what() << std::endl;
     }

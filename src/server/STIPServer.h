@@ -5,16 +5,19 @@
 #ifndef TOTALLY_NOT_RABBITMQ_SERVER_H
 #define TOTALLY_NOT_RABBITMQ_SERVER_H
 
-#include "protocol/STIP.h"
+
 #include <boost/asio.hpp>
+
 #include "protocol/Connection.h"
+
 using boost::asio::ip::udp;
 
-class STIPServer : public STIP_Base {
+class STIPServer {
 public:
     explicit STIPServer(udp::socket &socket);
-    void accept();
+    Connection* acceptConnection();
 private:
+    udp::socket *socket;
     ConnectionManager *connectionManager;
 };
 

@@ -6,15 +6,15 @@ set(CMAKE_CXX_STANDARD 17)          # Enable c++14 standard
 
 
 add_executable(rabbitServerL2
-        src/server/server.cpp
-        src/protocol/STIP.cpp
+        src/server/STIPServer.cpp
+#        src/protocol/STIP.cpp
         examples/server.cpp
         src/protocol/Connection.cpp
 )
 
 add_executable(rabbitClientL2
-        src/client/client.cpp
-        src/protocol/STIP.cpp
+        src/client/STIPClient.cpp
+#        src/protocol/STIP.cpp
         examples/client.cpp
         src/protocol/Connection.cpp
 )

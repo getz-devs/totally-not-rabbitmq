@@ -13,39 +13,39 @@
 #include "protocol/STIP.h"
 #include "utils/Timer.h"
 #include "protocol/Connection.h"
+#include "protocol/STIP.h"
+using boost::asio::ip::udp;
 
-class Session {
-public:
-     Session() = default;
-};
-
-
-class ConnectionManager;
-class EndpointConnection {
+class Connection {
 private:
-    std::queue<STIP_PACKET> packetQueue;
+
     std::mutex mtx;
     std::condition_variable cv;
     Timer timeoutTimer;
     std::thread mainThread;
     udp::endpoint endpoint;
-    const udp::socket *socket;
-    ConnectionManager *connectionManager;
-    std::unordered_map<uint32_t, Session> sessions;
+    udp::socket *socket = nullptr;
+    char connectionStatus = 100;
+    std::queue<STIP_PACKET> packetQueue;
 
 public:
-    EndpointConnection(udp::endpoint endpoint, const udp::socket &socket, ConnectionManager &connectionManager);
+    Connection(udp::endpoint &endpoint, udp::socket *socket);
+
+    void sendData(void* data, size_t size);
 
     void addPacket(const STIP_PACKET &packet);
 
     STIP_PACKET getPacket();
-    ~EndpointConnection();
+
+    void setConnectionStatus(char status);
+
+    ~Connection();
 };
 
 
 class ConnectionManager {
 private:
-    std::unordered_map<udp::endpoint, EndpointConnection *> connections;
+    std::unordered_map<udp::endpoint, Connection *> connections;
     std::mutex mtx;
     const udp::socket *socket;
 
@@ -54,6 +54,12 @@ public:
 
 //    ConnectionManager(const udp::endpoint &endpoint, udp::socket &socket);
     void accept(const udp::endpoint &endpoint, const STIP_PACKET &packet);
+
+    void addConnection(const udp::endpoint &endpoint, Connection *connection);
+
+    bool check(const udp::endpoint &endpoint);
+
+    Connection* getConnection(const udp::endpoint &endpoint);
 
     void remove(const udp::endpoint &endpoint);
 

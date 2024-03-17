@@ -31,25 +31,29 @@ void STIPClient::receiveProcess() {
 Connection *STIPClient::connect(udp::endpoint &targetEndpoint) {
     // TODO: Add error handling
 
-    auto * connection = new Connection(targetEndpoint, socket);
+    auto *connection = new Connection(targetEndpoint, socket);
     this->connectionManager->addConnection(targetEndpoint, connection);
     STIP_PACKET packet[1] = {};
     packet[0].header.command = 100;
     packet[0].header.size = sizeof(int);
 
     this->socket->send_to(boost::asio::buffer(packet, packet[0].header.size), targetEndpoint);
+    bool result = false;
+    STIP_PACKET response = connection->getPacket(result);
 
-    STIP_PACKET response = connection->getPacket();
+    // TODO: Add better error handling
+    if (!result) {
+        throw std::runtime_error("Error while waiting for response");
+    }
     if (response.header.command == 101) {
         packet[0].header.command = 102;
         packet[0].header.size = sizeof(int);
         this->socket->send_to(boost::asio::buffer(packet, packet[0].header.size), targetEndpoint);
         connection->setConnectionStatus(102);
+        connection->startProcessing();
         return connection;
     }
-
-
-
+    throw std::runtime_error("Error while connecting");
 }
 
 void STIPClient::startListen() {

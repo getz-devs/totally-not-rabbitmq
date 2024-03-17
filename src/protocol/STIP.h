@@ -16,7 +16,7 @@ struct STIP_HEADER {
     int command;
     uint32_t session_id;
     int size;
-    int packet_id;
+    uint8_t packet_id;
 
     // generate session id
 };
@@ -32,17 +32,5 @@ struct STIP_PACKET {
 
 using boost::asio::ip::udp;
 
-//class STIP_Base {
-//public:
-//    STIP_Base(udp::socket &socket);
-//
-//    int ping(udp::endpoint &endpoint);
-//protected:
-//    udp::socket *socket = nullptr;
-//
-////    session::SessionManager *sessionManager;
-//    ConnectionManager *connectionManager = nullptr;
-//};
 
-
-#endif //RABBIT_STIP_H
+#endif //RABBIT_STIP_BASE_H

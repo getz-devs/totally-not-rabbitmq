@@ -10,6 +10,7 @@ add_executable(rabbitServerL2
 #        src/protocol/STIP.cpp
         examples/server.cpp
         src/protocol/Connection.cpp
+        src/protocol/Session.cpp
 )
 
 add_executable(rabbitClientL2
@@ -17,13 +18,14 @@ add_executable(rabbitClientL2
 #        src/protocol/STIP.cpp
         examples/client.cpp
         src/protocol/Connection.cpp
+        src/protocol/Session.cpp
 )
 
 # add sources dir
 include_directories(src)
 
-target_compile_features(rabbitServerL2 PRIVATE cxx_std_17)
-target_compile_features(rabbitClientL2 PRIVATE cxx_std_17)
+target_compile_features(rabbitServerL2 PRIVATE cxx_std_20)
+target_compile_features(rabbitClientL2 PRIVATE cxx_std_20)
 
 
 # packet manager

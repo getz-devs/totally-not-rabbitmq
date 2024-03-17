@@ -14,7 +14,10 @@
 #include "utils/Timer.h"
 #include "protocol/Connection.h"
 #include "protocol/STIP.h"
+#include "protocol/Session.h"
 using boost::asio::ip::udp;
+
+// TODO: Add to connection check live connection with ping thread
 
 class Connection {
 private:
@@ -27,22 +30,32 @@ private:
     udp::socket *socket = nullptr;
     char connectionStatus = 100;
     std::queue<STIP_PACKET> packetQueue;
+    SessionManager *sessionManager = nullptr;
+    bool isRunning = false;
+    void processThread();
 
 public:
     Connection(udp::endpoint &endpoint, udp::socket *socket);
 
     void sendData(void* data, size_t size);
 
+    uint32_t pingVersion();
+
     void addPacket(const STIP_PACKET &packet);
 
-    STIP_PACKET getPacket();
+    STIP_PACKET getPacket(bool &result);
 
     void setConnectionStatus(char status);
+
+    void startProcessing();
+
+    void stopProcessing();
 
     ~Connection();
 };
 
 
+// TODO: Create connection killer thread
 class ConnectionManager {
 private:
     std::unordered_map<udp::endpoint, Connection *> connections;
@@ -52,7 +65,7 @@ private:
 public:
     explicit ConnectionManager(const udp::socket &socket);
 
-//    ConnectionManager(const udp::endpoint &endpoint, udp::socket &socket);
+
     void accept(const udp::endpoint &endpoint, const STIP_PACKET &packet);
 
     void addConnection(const udp::endpoint &endpoint, Connection *connection);

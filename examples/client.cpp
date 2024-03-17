@@ -10,20 +10,10 @@
 #include "client/STIPClient.h"
 #include <csignal>
 
-void signalHandler( int signum ) {
-    std::cout << "Interrupt signal (" << signum << ") received.\n";
-
-    // cleanup and close up stuff here
-    // terminate program
-
-    exit(signum);
-}
 
 int main() {
     try {
-        signal(SIGABRT, signalHandler);
-        signal(SIGTERM, signalHandler);
-        signal (SIGINT, signalHandler);
+
         boost::asio::io_context io_context;
 
         udp::resolver resolver(io_context);
@@ -33,35 +23,20 @@ int main() {
         udp::socket socket(io_context);
         socket.open(udp::v4());
 
-//        int datasize = 12;
-//        STIP_PACKET packet[1] = {};
-//        packet[0].header.command = 0x01;
-//        packet[0].header.packet_id = 0x03;
-//        packet[0].header.size = sizeof(STIP_HEADER)+datasize;
-//        std::string data = "I'm Ilya";
-//        std::copy(data.begin(), data.end(), packet[0].data);
-//
-//        void* packet_ptr = &packet;
-//        std::cout << "Packet size: " << packet[0].header.size << std::endl;
-//        socket.send_to(boost::asio::buffer(packet_ptr,packet[0].header.size), server_endpoint);
-//
-//        std::array<char, 128> recv_buffer;
-//        udp::endpoint sender_endpoint;
-//        size_t len = socket.receive_from(boost::asio::buffer(recv_buffer), sender_endpoint);
-//        std::cout.write(recv_buffer.data(), len);
-//        std::cout << std::endl;
+
 
         STIPClient client(socket);
         client.startListen();
 
-        Connection* connection = client.connect(server_endpoint);
-        std::cout << "Connection accepted" << std::endl;
+        Connection *connection = client.connect(server_endpoint);
+        std::cout << "Connection accepted\n\n" << std::endl;
 //        connection->send("Hello, I'm Ilya");
 
-
+        uint32_t result = connection->pingVersion();
+        std::cout << "Ping result: " << result << std::endl;
 
 //        io_context.run();
-    } catch (std::exception& e) {
+    } catch (std::exception &e) {
         std::cerr << "Exception: " << e.what() << std::endl;
     }
     return 0;

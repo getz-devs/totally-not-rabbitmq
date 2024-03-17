@@ -15,7 +15,9 @@ using boost::asio::ip::udp;
 class STIPServer {
 public:
     explicit STIPServer(udp::socket &socket);
-    Connection* acceptConnection();
+
+    Connection *acceptConnection();
+
 private:
     udp::socket *socket;
     ConnectionManager *connectionManager;

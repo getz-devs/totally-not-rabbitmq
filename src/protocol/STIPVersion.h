@@ -1,0 +1,10 @@
+//
+// Created by Serge on 17.03.2024.
+//
+
+#ifndef RABBIT_CLIENTVERSION_H
+#define RABBIT_CLIENTVERSION_H
+
+#define STIP_PROTOCOL_VERSION 1
+
+#endif //RABBIT_CLIENTVERSION_H

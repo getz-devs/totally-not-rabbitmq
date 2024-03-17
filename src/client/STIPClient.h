@@ -12,9 +12,13 @@
 class STIPClient {
 public:
     explicit STIPClient(udp::socket &socket);
+
     void startListen();
+
     void stopListen();
-    Connection* connect(udp::endpoint &targetEndpoint);
+
+    Connection *connect(udp::endpoint &targetEndpoint);
+
 private:
     udp::socket *socket;
     std::queue<STIP_PACKET> packetQueue;
@@ -23,6 +27,7 @@ private:
     std::thread mainThread;
     ConnectionManager *connectionManager = nullptr;
     bool isRunning = false;
+
     void receiveProcess();
 };
 

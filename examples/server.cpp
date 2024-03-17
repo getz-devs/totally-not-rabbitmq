@@ -8,8 +8,6 @@
 using boost::asio::ip::udp;
 
 
-
-
 int main() {
     try {
         boost::asio::io_context io_context;
@@ -20,35 +18,13 @@ int main() {
 
         STIPServer server(socket);
 
-        for (;;){
-            Connection* connection = server.acceptConnection();
-            std::cout << "Connection accepted" << std::endl;
+        for (;;) {
+            Connection *connection = server.acceptConnection();
+            std::cout << "Connection accepted\n\n" << std::endl;
         }
 
-//        for (;;) {
-//            STIP_PACKET sample[1] = {};
-//
-//
-//            udp::endpoint remote_endpoint; // Информация об удаленном клиенте
-//
-//            // Принимаем данные от клиента
-//            socket.receive_from(boost::asio::buffer(sample), remote_endpoint);
-//
-//
-//            std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port() << std::endl;
-//
-//
-//
-//            std::cout << std::endl;
-//            // Определяем, что будем отправлять обратно клиенту
-//            std::string response = make_pong_message();
-//
-//            // Отправляем ответ обратно на адрес клиента
-//            socket.send_to(boost::asio::buffer(response), remote_endpoint);
-//        }
-//
 
-    } catch (std::exception& e) {
+    } catch (std::exception &e) {
         std::cerr << "Ошибка: " << e.what() << std::endl;
     }
 

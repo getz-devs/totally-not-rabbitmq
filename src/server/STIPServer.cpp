@@ -20,7 +20,7 @@ Connection *STIPServer::acceptConnection() {
         }
         std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port() << std::endl;
 
-        std::cout << "Command: " << packet[0].header.command << std::endl;
+        std::cout << "Command: " << packet[0].header.command << "\n" << std::endl;
 
         STIP_PACKET response[1] = {};
         Connection *connection = nullptr;
@@ -40,9 +40,10 @@ Connection *STIPServer::acceptConnection() {
                 if (connection_exist != nullptr) {
                     connection_exist->setConnectionStatus(102);
                 }
+                connection_exist->startProcessing();
                 return connection_exist;
             default:
-                this->connectionManager->accept(remote_endpoint, packet[1]);
+                this->connectionManager->accept(remote_endpoint, packet[0]);
                 break;
         }
     }

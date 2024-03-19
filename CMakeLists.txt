@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 project(rabbit)               # Create project "simple_example"
 set(CMAKE_CXX_STANDARD 17)          # Enable c++14 standard
 
-
+# i have if condition "if(MSVC)" in sub library that
 
 
 add_executable(rabbitServerL2
@@ -24,8 +24,8 @@ add_executable(rabbitClientL2
 # add sources dir
 include_directories(src)
 
-target_compile_features(rabbitServerL2 PRIVATE cxx_std_20)
-target_compile_features(rabbitClientL2 PRIVATE cxx_std_20)
+target_compile_features(rabbitServerL2 PRIVATE cxx_std_17)
+target_compile_features(rabbitClientL2 PRIVATE cxx_std_17)
 
 
 # packet manager
@@ -46,5 +46,7 @@ CPMAddPackage(
         OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_INCLUDE_LIBRARIES container\\\;asio" # Note the escapes!
 )
 
-target_link_libraries(rabbitServerL2 PRIVATE Boost::asio ws2_32)
+target_link_libraries(rabbitServerL2 PRIVATE
+        Boost::asio ws2_32
+)
 target_link_libraries(rabbitClientL2 PRIVATE Boost::asio ws2_32)

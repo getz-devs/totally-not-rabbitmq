@@ -13,7 +13,7 @@
 
 #include "protocol/STIP.h"
 #include "protocol/STIPVersion.h"
-
+#include <vector>
 //using namespace std;
 
 
@@ -27,6 +27,10 @@ protected:
     uint32_t id = 0;
     void *data = nullptr;
 };
+
+
+
+// ------------------------------------------------ PingSession.h ------------------------------------------------
 
 class PingSession : public Session {
 public:
@@ -51,6 +55,94 @@ private:
     uint32_t answer = 0;
 };
 
+
+
+// ------------------------------------------------ SendMessageSession.h ------------------------------------------------
+
+class SendMessageSession : public Session {
+public:
+    explicit SendMessageSession(uint32_t id, void *data, uint32_t size, udp::socket *socket, udp::endpoint &endpoint) {
+        status = -1;
+        this->id = id;
+        this->data = data;
+        this->size = size;
+
+        this->socket = socket;
+        this->endpoint = endpoint;
+
+        packet_counts = size / MAX_STIP_DATA_SIZE + 1;
+    }
+
+    void processIncomingPacket(STIP_PACKET packet) override;
+
+//    void sendAnswer(udp::socket &socket, udp::endpoint &endpoint, void *data, size_t size);
+    bool initSend();
+
+    bool sendData();
+    bool waitApproval();
+
+private:
+    std::mutex mtx;
+    std::condition_variable cv;
+
+    void* data = nullptr;
+    size_t size = 0;
+    size_t packet_counts = 0;
+    int status = -1;
+
+    udp::socket *socket = nullptr;
+    udp::endpoint endpoint;
+
+    void sendPart(size_t packet_id);
+};
+
+// ------------------------------------------------ ReceiveMessageSession.h ------------------------------------------------
+
+class ReceiveMessageSession : public Session {
+public:
+    explicit ReceiveMessageSession(uint32_t id, size_t size, size_t packet_counts, udp::socket *socket, udp::endpoint &endpoint) {
+        status = -1;
+        this->id = id;
+        this->size = size;
+        this->packet_counts = packet_counts;
+        receivedParts.resize(packet_counts, false);
+        data = malloc(size);
+
+        this->socket = socket;
+        this->endpoint = endpoint;
+    }
+
+    void processIncomingPacket(STIP_PACKET packet) override;
+
+//    void sendAnswer(udp::socket &socket, udp::endpoint &endpoint, void *data, size_t size);
+
+    void waitAprroval();
+
+    int getStatus() const;
+
+    std::string getDataAsString();
+
+private:
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool isAnswered = false;
+    void *answer = nullptr;
+    size_t answerSize = 0;
+    int status = -1;
+
+    void* data = nullptr;
+    size_t size = 0;
+    size_t packet_counts = 0;
+
+    std::vector<bool> receivedParts;
+
+    udp::socket *socket = nullptr;
+    udp::endpoint endpoint;
+};
+
+
+
+// ------------------------------------------------ SessionManager.h ------------------------------------------------
 
 class SessionManager {
 public:

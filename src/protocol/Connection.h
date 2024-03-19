@@ -15,9 +15,12 @@
 #include "protocol/Connection.h"
 #include "protocol/STIP.h"
 #include "protocol/Session.h"
+
+
 using boost::asio::ip::udp;
 
 // TODO: Add to connection check live connection with ping thread
+
 
 class Connection {
 private:
@@ -34,12 +37,24 @@ private:
     bool isRunning = false;
     void processThread();
 
+    // message
+    std::queue<ReceiveMessageSession*> messageQueue;
+    std::mutex messageMtx;
+    std::condition_variable messageCv;
+
 public:
     Connection(udp::endpoint &endpoint, udp::socket *socket);
 
     void sendData(void* data, size_t size);
 
     uint32_t pingVersion();
+
+    bool sendMessage(void *data, size_t size);
+
+    bool sendMessage(const std::string &message);
+
+    ReceiveMessageSession *receiveMessage();
+
 
     void addPacket(const STIP_PACKET &packet);
 

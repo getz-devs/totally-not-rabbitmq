@@ -6,10 +6,9 @@
 #include <iostream>
 #include <boost/asio.hpp>
 
-#include "protocol/STIP.h"
+
 #include "client/STIPClient.h"
 #include <csignal>
-
 
 int main() {
     try {
@@ -32,8 +31,17 @@ int main() {
         std::cout << "Connection accepted\n\n" << std::endl;
 //        connection->send("Hello, I'm Ilya");
 
-        uint32_t result = connection->pingVersion();
-        std::cout << "Ping result: " << result << std::endl;
+//        uint32_t result = connection->pingVersion();
+//        std::cout << "Ping result: " << result << std::endl;
+
+        std::string message = "Hello, I'm Ilya";
+        connection->sendMessage(message);
+
+        ReceiveMessageSession *received = connection->receiveMessage();
+        std::cout << "Received message: " << received->getDataAsString() << std::endl;
+
+
+
 
 //        io_context.run();
     } catch (std::exception &e) {

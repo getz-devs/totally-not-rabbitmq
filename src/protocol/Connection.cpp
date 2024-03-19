@@ -4,6 +4,7 @@
 
 #include "Connection.h"
 #include "protocol/STIP.h"
+#include "protocol/Session.h"
 
 Connection::Connection(udp::endpoint &endpoint, udp::socket *socket) {
     this->endpoint = endpoint;
@@ -23,7 +24,7 @@ void Connection::addPacket(const STIP_PACKET &packet) {
 STIP_PACKET Connection::getPacket(bool &result) {
     std::unique_lock<std::mutex> lock(mtx);
     cv.wait(lock, [this] { return !packetQueue.empty(); });
-    if (packetQueue.empty() ) {
+    if (packetQueue.empty()) {
         result = false;
         return {};
     }
@@ -53,10 +54,6 @@ void Connection::setConnectionStatus(char status) {
     connectionStatus = status;
 }
 
-void Connection::sendData(void *data, size_t size) {
-    size_t packet_count = size / MAX_STIP_DATA_SIZE + 1;
-    // TODO: Realize packet sending
-}
 
 uint32_t Connection::pingVersion() {
     uint32_t session_id = sessionManager->generateSessionId();
@@ -80,6 +77,37 @@ uint32_t Connection::pingVersion() {
     // TODO: Add timeout and  error handling
 }
 
+bool Connection::sendMessage(void *data, size_t size) {
+    uint32_t session_id = sessionManager->generateSessionId();
+    auto *session = new SendMessageSession(session_id, data, size, socket, endpoint);
+    sessionManager->addSession(session);
+    session->initSend();
+    session->sendData();
+    bool result = session->waitApproval();
+
+    sessionManager->deleteSession(session);
+    delete session;
+
+
+    return result;
+}
+
+bool Connection::sendMessage(const std::string &message) {
+    return sendMessage((void *) message.c_str(), message.size());
+}
+
+ReceiveMessageSession *Connection::receiveMessage() {
+    std::unique_lock<std::mutex> lock(messageMtx);
+    messageCv.wait(lock, [this] { return !messageQueue.empty(); });
+    if (messageQueue.empty()) {
+        return nullptr;
+    }
+    ReceiveMessageSession *message = messageQueue.front();
+    messageQueue.pop();
+    return message;
+}
+
+
 void Connection::processThread() {
     std::cout << "Start processing packets for " << endpoint.address() << ":" << endpoint.port() << std::endl;
     while (isRunning) {
@@ -94,6 +122,41 @@ void Connection::processThread() {
 
 
         switch (packet.header.command) {
+            ReceiveMessageSession *tempMsgSession;
+            size_t packet_counts;
+            case 0:
+                // check if session exists
+                if (sessionManager->getSession(packet.header.session_id) != nullptr) {
+                    std::cout << "Session already exist" << std::endl;
+                    continue;
+                }
+
+                // message
+                std::cout << "Message received" << std::endl;
+                packet_counts = *(size_t *) packet.data;
+                tempMsgSession = new ReceiveMessageSession(packet.header.session_id, packet.header.size - sizeof(STIP_HEADER), packet_counts, socket, endpoint);
+                sessionManager->addSession(tempMsgSession);
+                tempMsgSession->processIncomingPacket(packet);
+                break;
+
+            case 3:
+                ReceiveMessageSession *tempReceiveSession;
+                tempReceiveSession = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(packet.header.session_id));
+                if (tempReceiveSession != nullptr) {
+                    tempReceiveSession->processIncomingPacket(packet);
+                }
+
+                if (tempReceiveSession->getStatus() == 5) {
+                    std::lock_guard<std::mutex> lock(messageMtx);
+                    messageQueue.push(tempReceiveSession);
+                    messageCv.notify_one();
+                } else if (tempReceiveSession->getStatus() == 6) {
+                    sessionManager->deleteSession(tempReceiveSession);
+                    delete tempReceiveSession;
+                }
+
+                break;
+
             case 10:
                 // ping
                 std::cout << "Ping received" << std::endl;

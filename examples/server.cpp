@@ -4,9 +4,16 @@
 
 #include "protocol/STIP.h"
 #include "server/STIPServer.h"
+#include "protocol/Connection.h"
 
 using boost::asio::ip::udp;
 
+// func to async process connection
+void processConnection(Connection *connection) {
+    ReceiveMessageSession * received= connection->receiveMessage();
+    std::cout << "Received message: " << received->getDataAsString() << std::endl;
+    connection->sendMessage("Hello, I'm server");
+}
 
 int main() {
     try {
@@ -21,6 +28,8 @@ int main() {
         for (;;) {
             Connection *connection = server.acceptConnection();
             std::cout << "Connection accepted\n\n" << std::endl;
+
+            std::thread(processConnection, connection).detach();
         }
 
 

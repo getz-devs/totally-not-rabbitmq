@@ -16,7 +16,7 @@ struct STIP_HEADER {
     int command;
     uint32_t session_id;
     int size;
-    uint8_t packet_id;
+    uint32_t packet_id;
 
     // generate session id
 };

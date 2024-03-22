@@ -21,78 +21,82 @@ using boost::asio::ip::udp;
 
 // TODO: Add to connection check live connection with ping thread
 
+namespace STIP {
 
-class Connection {
-private:
+    class Connection {
+    private:
 
-    std::mutex mtx;
-    std::condition_variable cv;
-    Timer timeoutTimer;
-    std::thread mainThread;
-    udp::endpoint endpoint;
-    udp::socket *socket = nullptr;
-    char connectionStatus = 100;
-    std::queue<STIP_PACKET> packetQueue;
-    SessionManager *sessionManager = nullptr;
-    bool isRunning = false;
-    void processThread();
+        std::mutex mtx;
+        std::condition_variable cv;
+        Timer timeoutTimer;
+        std::thread mainThread;
+        udp::endpoint endpoint;
+        udp::socket *socket = nullptr;
+        char connectionStatus = 100;
+        std::queue<STIP_PACKET> packetQueue;
+        SessionManager *sessionManager = nullptr;
+        bool isRunning = false;
 
-    // message
-    std::queue<ReceiveMessageSession*> messageQueue;
-    std::mutex messageMtx;
-    std::condition_variable messageCv;
+        void processThread();
 
-public:
-    Connection(udp::endpoint &endpoint, udp::socket *socket);
+        // message
+        std::queue<ReceiveMessageSession *> messageQueue;
+        std::mutex messageMtx;
+        std::condition_variable messageCv;
 
-    void sendData(void* data, size_t size);
+    public:
+        Connection(udp::endpoint &endpoint, udp::socket *socket);
 
-    uint32_t pingVersion();
+        void sendData(void *data, size_t size);
 
-    bool sendMessage(void *data, size_t size);
+        uint32_t pingVersion();
 
-    bool sendMessage(const std::string &message);
+        bool sendMessage(void *data, size_t size);
 
-    ReceiveMessageSession *receiveMessage();
+        bool sendMessage(const std::string &message);
+
+        ReceiveMessageSession *receiveMessage();
 
 
-    void addPacket(const STIP_PACKET &packet);
+        void addPacket(const STIP_PACKET &packet);
 
-    STIP_PACKET getPacket(bool &result);
+        STIP_PACKET getPacket(bool &result);
 
-    void setConnectionStatus(char status);
+        void setConnectionStatus(char status);
 
-    void startProcessing();
+        void startProcessing();
 
-    void stopProcessing();
+        void stopProcessing();
 
-    ~Connection();
-};
+        ~Connection();
+    };
 
 
 // TODO: Create connection killer thread
-class ConnectionManager {
-private:
-    std::unordered_map<udp::endpoint, Connection *> connections;
-    std::mutex mtx;
-    const udp::socket *socket;
+    class ConnectionManager {
+    private:
+        std::unordered_map<udp::endpoint, Connection *> connections;
+        std::mutex mtx;
+        const udp::socket *socket;
 
-public:
-    explicit ConnectionManager(const udp::socket &socket);
+    public:
+        explicit ConnectionManager(const udp::socket &socket);
 
 
-    void accept(const udp::endpoint &endpoint, const STIP_PACKET &packet);
+        void accept(const udp::endpoint &endpoint, const STIP_PACKET &packet);
 
-    void addConnection(const udp::endpoint &endpoint, Connection *connection);
+        void addConnection(const udp::endpoint &endpoint, Connection *connection);
 
-    bool check(const udp::endpoint &endpoint);
+        bool check(const udp::endpoint &endpoint);
 
-    Connection* getConnection(const udp::endpoint &endpoint);
+        Connection *getConnection(const udp::endpoint &endpoint);
 
-    void remove(const udp::endpoint &endpoint);
+        void remove(const udp::endpoint &endpoint);
 
-    ~ConnectionManager();
-};
+        ~ConnectionManager();
+    };
+
+}
 
 
 #endif //RABBIT_CONNECTION_H

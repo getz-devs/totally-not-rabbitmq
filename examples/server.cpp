@@ -6,7 +6,11 @@
 #include "server/STIPServer.h"
 #include "protocol/Connection.h"
 
+using namespace STIP;
+
 using boost::asio::ip::udp;
+
+
 
 class ClientHandler {
 public:

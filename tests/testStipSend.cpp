@@ -16,6 +16,7 @@
 //#include <gmock/gmock.h>
 
 using namespace std;
+using namespace STIP;
 
 TEST(TestGroupName, Subtest_1) {
     ASSERT_TRUE(1 == 1);
@@ -122,7 +123,7 @@ TEST(Protocol, MessageTransfering) {
     cout << "\n\nMessage sent\n\n" << endl;
 
     ReceiveMessageSession *received = connection->receiveMessage();
-//
+
     ASSERT_EQ(received->getDataAsString(), test_string);
     cout << "[MAIN THREAD] Received message: " << received->getDataAsString() << endl;
 

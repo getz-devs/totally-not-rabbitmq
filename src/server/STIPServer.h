@@ -12,16 +12,20 @@
 
 //using boost::asio::ip::udp;
 
-class STIPServer {
-public:
-    explicit STIPServer(udp::socket &socket);
+namespace STIP {
 
-    Connection *acceptConnection();
+    class STIPServer {
+    public:
+        explicit STIPServer(udp::socket &socket);
 
-private:
-    udp::socket *socket;
-    ConnectionManager *connectionManager;
-};
+        Connection *acceptConnection();
+
+    private:
+        udp::socket *socket;
+        ConnectionManager *connectionManager;
+    };
+
+}
 
 
 #endif //TOTALLY_NOT_RABBITMQ_SERVER_H

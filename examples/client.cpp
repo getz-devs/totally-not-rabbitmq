@@ -8,6 +8,7 @@
 
 
 #include "client/STIPClient.h"
+using namespace STIP;
 #include <csignal>
 
 int main() {
@@ -21,8 +22,6 @@ int main() {
 
         udp::socket socket(io_context);
         socket.open(udp::v4());
-
-
 
         STIPClient client(socket);
         client.startListen();

@@ -98,7 +98,10 @@ bool Connection::sendMessage(const std::string &message) {
 
 ReceiveMessageSession *Connection::receiveMessage() {
     std::unique_lock<std::mutex> lock(messageMtx);
-    messageCv.wait(lock, [this] { return !messageQueue.empty(); });
+
+    while (messageQueue.empty() && isRunning) {
+        messageCv.wait(lock);
+    }
     if (messageQueue.empty()) {
         return nullptr;
     }
@@ -149,6 +152,7 @@ void Connection::processThread() {
                 if (tempReceiveSession->getStatus() == 5) {
                     std::lock_guard<std::mutex> lock(messageMtx);
                     messageQueue.push(tempReceiveSession);
+                    std::cout << "Message received, should be notified" << std::endl;
                     messageCv.notify_one();
                 } else if (tempReceiveSession->getStatus() == 6) {
                     sessionManager->deleteSession(tempReceiveSession);
@@ -166,7 +170,10 @@ void Connection::processThread() {
                 auto tempSession = sessionManager->getSession(packet.header.session_id);
                 if (tempSession != nullptr) {
                     tempSession->processIncomingPacket(packet);
+                } else {
+                    std::cerr << "Session not found" << std::endl;
                 }
+
                 break;
         }
     }

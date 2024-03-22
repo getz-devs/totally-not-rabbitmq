@@ -8,13 +8,18 @@
 
 using boost::asio::ip::udp;
 
-// func to async process connection
-void processConnection(Connection *connection) {
-    ReceiveMessageSession * received= connection->receiveMessage();
-    std::cout << "Received message: " << received->getDataAsString() << std::endl;
-    connection->sendMessage("Hello, I'm server");
-}
+class ClientHandler {
+public:
+    void processConnection(Connection *connection) {
+        std::cout << "Connection accepted\n\n" << std::endl;
 
+        std::string message = "Hello, I'm Ilya";
+        connection->sendMessage(message);
+
+        ReceiveMessageSession *received = connection->receiveMessage();
+        std::cout << "Received message: " << received->getDataAsString() << std::endl;
+    }
+};
 int main() {
     try {
         boost::asio::io_context io_context;
@@ -28,8 +33,8 @@ int main() {
         for (;;) {
             Connection *connection = server.acceptConnection();
             std::cout << "Connection accepted\n\n" << std::endl;
-
-            std::thread(processConnection, connection).detach();
+            auto *clientHandler = new ClientHandler();
+            std::thread(&ClientHandler::processConnection, clientHandler, connection).detach();
         }
 
 

@@ -19,7 +19,8 @@ void STIPClient::receiveProcess() {
         udp::endpoint remote_endpoint;
         size_t length = socket->receive_from(boost::asio::buffer(packet), remote_endpoint, 0, error);
         if (error && error != boost::asio::error::message_size) {
-            throw boost::system::system_error(error);
+            return;
+//            throw boost::system::system_error(error);
         }
         std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port() << std::endl;
 

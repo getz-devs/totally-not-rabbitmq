@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 project(rabbit)               # Create project "simple_example"
 set(CMAKE_CXX_STANDARD 17)          # Enable c++14 standard
 
+#### Dependencies ###
+#add_subdirectory(dependencies)
+
 
 # ---- Add googletest directly ----
 include(FetchContent)
@@ -15,21 +18,21 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 
-add_executable(rabbitServerL2
+add_executable(rabbitServerL2Example
         src/server/STIPServer.cpp
         examples/server.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
 )
 
-add_executable(rabbitClientL2
+add_executable(rabbitClientL2Example
         src/client/STIPClient.cpp
         examples/client.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
 )
 
-add_executable(rabbitServerTest
+add_executable(STIPTest
         src/server/STIPServer.cpp
         src/client/STIPClient.cpp
         tests/testStipSend.cpp
@@ -40,8 +43,8 @@ add_executable(rabbitServerTest
 # add sources dir
 include_directories(src)
 
-target_compile_features(rabbitServerL2 PRIVATE cxx_std_17)
-target_compile_features(rabbitClientL2 PRIVATE cxx_std_17)
+target_compile_features(rabbitServerL2Example PRIVATE cxx_std_17)
+target_compile_features(rabbitClientL2Example PRIVATE cxx_std_17)
 
 
 # ---- Add Boost via CPM ----
@@ -60,18 +63,23 @@ CPMAddPackage(
         OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_INCLUDE_LIBRARIES container\\\;asio" # Note the escapes!
 )
 
-target_link_libraries(rabbitServerL2 PRIVATE
+#find_package(SqliteOrm)
+#find_package(asio REQUIRED)
+
+target_link_libraries(rabbitServerL2Example PRIVATE
         Boost::asio ws2_32
+#        asio::asio
 )
-target_link_libraries(rabbitClientL2 PRIVATE
+target_link_libraries(rabbitClientL2Example PRIVATE
         Boost::asio ws2_32
+#        asio::asio
 )
 
 # ---- Create test executable ----
-target_link_libraries(rabbitServerTest
+target_link_libraries(STIPTest
         GTest::gtest_main
         Boost::asio ws2_32
 )
 include(GoogleTest)
-gtest_discover_tests(rabbitServerTest)
+gtest_discover_tests(STIPTest)
 

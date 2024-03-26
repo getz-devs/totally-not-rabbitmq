@@ -32,6 +32,15 @@ add_executable(rabbitClientL2Example
         src/protocol/Session.cpp
 )
 
+add_executable(rabbitServerL3cmd
+        src/cmd/serverMain.cpp
+        src/server/STIPServer.cpp
+        src/rabbitCore/server/RabbitServer.cpp
+        src/protocol/Connection.cpp
+        src/protocol/Session.cpp
+
+)
+
 add_executable(STIPTest
         src/server/STIPServer.cpp
         src/client/STIPClient.cpp
@@ -63,7 +72,8 @@ CPMAddPackage(
         OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_INCLUDE_LIBRARIES container\\\;asio" # Note the escapes!
 )
 
-#find_package(SqliteOrm)
+find_package(SqliteOrm)
+find_package(argparse)
 #find_package(asio REQUIRED)
 
 target_link_libraries(rabbitServerL2Example PRIVATE
@@ -73,6 +83,12 @@ target_link_libraries(rabbitServerL2Example PRIVATE
 target_link_libraries(rabbitClientL2Example PRIVATE
         Boost::asio ws2_32
 #        asio::asio
+)
+
+target_link_libraries(rabbitServerL3cmd PRIVATE
+        Boost::asio ws2_32
+        argparse::argparse
+        sqlite_orm::sqlite_orm
 )
 
 # ---- Create test executable ----

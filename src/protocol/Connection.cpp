@@ -24,7 +24,7 @@ namespace STIP {
 
     STIP_PACKET Connection::getPacket(bool &result) {
         std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] { return !packetQueue.empty(); });
+        cv.wait(lock, [this] { return !packetQueue.empty(); }); // TODO условие дописать для stop_processing
         if (packetQueue.empty()) {
             result = false;
             return {};

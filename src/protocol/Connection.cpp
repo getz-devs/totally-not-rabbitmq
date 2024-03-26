@@ -137,9 +137,12 @@ namespace STIP {
 
                     // message
                     std::cout << "Message received" << std::endl;
-                    packet_counts = *(size_t *) packet.data;
+//                    packet_counts = *(size_t *) packet.data;
+                    packet_counts = packet.header.packet_id;
+
                     tempMsgSession = new ReceiveMessageSession(packet.header.session_id,
-                                                               packet.header.size - sizeof(STIP_HEADER), packet_counts,
+                                                               *(size_t *) packet.data,
+                                                               packet_counts,
                                                                socket, endpoint);
                     sessionManager->addSession(tempMsgSession);
                     tempMsgSession->processIncomingPacket(packet);

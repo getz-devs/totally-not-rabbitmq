@@ -40,9 +40,10 @@ namespace STIP {
                     Connection *connection_exist;
                 case 102: // ACK
                     connection_exist = this->connectionManager->getConnection(remote_endpoint);
-                    if (connection_exist != nullptr) {
-                        connection_exist->setConnectionStatus(102);
+                    if (connection_exist == nullptr) {
+                        break;
                     }
+                    connection_exist->setConnectionStatus(102);
                     connection_exist->startProcessing();
                     return connection_exist;
                 default:

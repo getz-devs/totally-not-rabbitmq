@@ -29,8 +29,8 @@ jobs:
       - name: Create default profile
         run: conan profile detect --force
 
-      - name: Update profile
-        run: conan profile update settings.compiler.libcxx=libstdc++11 default
+#      - name: Update profile
+#        run: conan profile update settings.compiler.libcxx=libstdc++11 default
 
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}

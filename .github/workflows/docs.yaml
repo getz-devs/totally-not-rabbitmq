@@ -1,0 +1,42 @@
+name: example-project
+
+# Triggers the workflow on push or pull request events but only for the main branch
+on:
+  push:
+    branches: [ feature/doc, dev ]
+  pull_request:
+    branches: [ feature/doc, dev ]
+  workflow_dispatch:
+
+
+# A simple workflow to build a C++ project and generate documentation with hdoc
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies, then configure and build project
+        run: |
+          sudo apt install build-essential cmake ninja-build
+#           cmake -GNinja -Bbuild -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+#           ninja -C build  # Optional, you don't need to build the project to use hdoc
+
+      - name: Get Conan
+        uses: turtlebrowser/get-conan@v1.2
+
+      - name: Create default profile
+        run: conan profile new default --detect
+
+      - name: Update profile
+        run: conan profile update settings.compiler.libcxx=libstdc++11 default
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Run hdoc to generate documentation and push it to docs.hdoc.io
+        uses: hdoc/hdoc-github-action@v2
+        with:
+          compile-commands-path: build/compile_commands.json
+          hdoc-api-key: ${{ secrets.HDOC_PROJECT_API_KEY }}

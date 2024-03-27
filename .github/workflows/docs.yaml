@@ -38,33 +38,26 @@ jobs:
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="conan_provider.cmake" -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-      - name: Run hdoc to generate documentation and push it to docs.hdoc.io
-        uses: hdoc/hdoc-github-action@v2
-        with:
-          compile-commands-path: build/compile_commands.json
-          hdoc-api-key: ${{ secrets.HDOC_PROJECT_API_KEY }}
-      - name: Set up Git credentials
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
+#      - name: Run hdoc to generate documentation and push it to docs.hdoc.io
+#        uses: hdoc/hdoc-github-action@v2
+#        with:
+#          compile-commands-path: build/compile_commands.json
+#          hdoc-api-key: ${{ secrets.HDOC_PROJECT_API_KEY }}
 
-      - name: Clone destination repository
+      - name: Download hdoc binary and run it
         run: |
-          git clone https://github.com/SUAI-getz-programmers/rabbit-docs.git
-          cd rabbit-docs
-      - name: Clean previous documentation files
-        run: |
-          rsync -a .git ../temp_git
-          rm -rf *
-          rsync -a ../temp_git .git
-          rm -rf ../temp_git
+          wget https://app.hdoc.io/releases/download_release/13/ -O hdoc
+          chmod +x hdoc
+          ./hdoc --verbose 
 
-      - name: Copy new documentation files
+      - name: Upload documentation to custom server
         run: |
-          cp -r ../hdoc-output/* .
+          cd hdoc-output
+          zip -r archive.zip *
+          curl -X POST \
+            -F filedata=@archive.zip \
+            -F name="My Project" \
+            -F version="0.1.0" \
+            -F description="This is my project." \
+            ${{env.DOCSURL}}
           
-      - name: Commit and push changes
-        run: |
-          git add .
-          git commit -m "[GHA] Update the documentation files."
-          git push origin main

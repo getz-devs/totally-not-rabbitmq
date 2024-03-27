@@ -12,6 +12,8 @@ on:
 # A simple workflow to build a C++ project and generate documentation with hdoc
 jobs:
   build:
+    env:
+      BUILD_TYPE: 'Debug'
     runs-on: ubuntu-latest
 
     steps:

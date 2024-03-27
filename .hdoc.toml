@@ -1,0 +1,11 @@
+[project]
+name = "my-project"
+version = "1.0.0"
+
+# Optional, adding this will enable direct links from the documentation
+# to your source code.
+git_repo_url = "https://github.com/SUAI-getz-programmers/totally-not-rabbitmq/"
+git_default_branch = "feature/doc"
+
+[paths]
+compile_commands = "build/compile_commands.json"

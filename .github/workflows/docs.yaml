@@ -1,4 +1,5 @@
-name: totally-not-rabbitmq
+#name: totally-not-rabbitmq
+name: notRabbit
 
 # Triggers the workflow on push or pull request events but only for the main branch
 on:

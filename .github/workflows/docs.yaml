@@ -3,9 +3,9 @@ name: example-project
 # Triggers the workflow on push or pull request events but only for the main branch
 on:
   push:
-    branches: [ feature/doc, dev ]
+    branches: [ feature/doc ]
   pull_request:
-    branches: [ feature/doc, dev ]
+    branches: [ feature/doc ]
   workflow_dispatch:
 
 
@@ -33,7 +33,7 @@ jobs:
 #        run: conan profile update settings.compiler.libcxx=libstdc++11 default
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="conan_provider.cmake" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Run hdoc to generate documentation and push it to docs.hdoc.io
         uses: hdoc/hdoc-github-action@v2

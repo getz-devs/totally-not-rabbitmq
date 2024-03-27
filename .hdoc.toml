@@ -1,5 +1,5 @@
 [project]
-name = "my-project"
+name = "totally-not-rabbitmq"
 version = "1.0.0"
 
 # Optional, adding this will enable direct links from the documentation

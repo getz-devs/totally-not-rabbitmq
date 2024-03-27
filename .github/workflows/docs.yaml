@@ -54,7 +54,7 @@ jobs:
           cd rabbit-docs
       - name: Clean previous documentation files
         run: |
-          find . -not -name '.git' -not -path './.git/*' -delete
+          find . -path ./.git -prune -o -type f -exec rm -f {} + -o -type d -empty -delete
 
       - name: Copy new documentation files
         run: |

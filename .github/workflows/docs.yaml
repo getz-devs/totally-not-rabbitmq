@@ -52,7 +52,9 @@ jobs:
           pip3 install meson
           CC=clang-17 CXX=clang++-17 CPP=clang-cpp-17 meson build
           sudo ninja -C build
-          cp build/hdoc ${{github.workspace}}
+          mv build/hdoc ..
+          cd ..
+          rm -rf hdoc
           
 
       - name: Configure CMake

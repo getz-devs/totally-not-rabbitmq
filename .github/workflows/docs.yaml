@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies, then configure and build project
         run: |
-          sudo apt install build-essential cmake ninja-build clang
+          sudo apt install build-essential cmake ninja-build clang-14 lld-14
 #           cmake -GNinja -Bbuild -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 #           ninja -C build  # Optional, you don't need to build the project to use hdoc
 
@@ -35,6 +35,9 @@ jobs:
 
 #      - name: Update profile
 #        run: conan profile update settings.compiler.libcxx=libstdc++11 default
+
+      - name: Install LLVM
+        run: bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="conan_provider.cmake" -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}

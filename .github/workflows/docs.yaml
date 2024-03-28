@@ -45,15 +45,15 @@ jobs:
 #      - name: Install clang
 #        run: sudo apt-get install clang-17 lld-17 libclang-cpp17-dev
 
-      - name: Cache HDOC build
-        id: cache-hdoc
-        uses: actions/cache@v4
+      - name: Restore Cache HDOC build
+        id: cache-hdoc-restore
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.BUILD_HDOC_DIR }}
           key: ${{ runner.os }}-hdoc
 
       - name: Build hdoc
-        if: steps.cache-hdoc.outputs.cache-hit != 'true'
+        if: steps.cache-hdoc-restore.outputs.cache-hit != 'true'
         run: |
           mkdir -p ${{ env.BUILD_HDOC_DIR }}
           cd ${{ env.BUILD_HDOC_DIR }}
@@ -62,6 +62,14 @@ jobs:
           pip3 install meson
           CC=clang-17 CXX=clang++-17 CPP=clang-cpp-17 meson build
           sudo ninja -C build
+
+      - name: Save Cache HDOC build
+        id: cache-hdoc-save
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.BUILD_HDOC_DIR }}
+          key: ${{ steps.cache-hdoc-restore.outputs.cache-primary-key }}
+
 
       - name: Copy hdoc binary
         run: |
@@ -87,8 +95,8 @@ jobs:
       - name: Upload documentation to custom server
         run: |
           cd hdoc-output
-          zip -r archive.zip *
-          curl -X POST \
+          sudo zip -r archive.zip *
+          sudo curl -X POST \
             -F filedata=@archive.zip \
             -F name="TotalyNotRabbitMQ" \
             -F version="1.0.0" \

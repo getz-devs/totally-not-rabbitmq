@@ -50,11 +50,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.BUILD_HDOC_DIR }}
-          key: ${{ runner.os }}-primes
+          key: ${{ runner.os }}-hdoc
 
       - name: Build hdoc
         if: steps.cache-hdoc.outputs.cache-hit != 'true'
         run: |
+          mkdir -p ${{ env.BUILD_HDOC_DIR }}
           cd ${{ env.BUILD_HDOC_DIR }}
           git clone https://github.com/PeterTh/hdoc.git
           cd hdoc

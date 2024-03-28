@@ -15,11 +15,11 @@ jobs:
   build:
     env:
       BUILD_TYPE: 'Debug'
-      BUILD_MESON_DIR: '/tmp/build'
+      BUILD_HDOC_DIR: '/tmp/build'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies, then configure and build project
         run: |
@@ -45,16 +45,27 @@ jobs:
 #      - name: Install clang
 #        run: sudo apt-get install clang-17 lld-17 libclang-cpp17-dev
 
+      - name: Cache HDOC build
+        id: cache-hdoc
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BUILD_HDOC_DIR }}
+          key: ${{ runner.os }}-primes
+
       - name: Build hdoc
+        if: steps.cache-hdoc.outputs.cache-hit != 'true'
         run: |
+          cd ${{ env.BUILD_HDOC_DIR }}
           git clone https://github.com/PeterTh/hdoc.git
           cd hdoc
           pip3 install meson
           CC=clang-17 CXX=clang++-17 CPP=clang-cpp-17 meson build
           sudo ninja -C build
-          mv build/hdoc /hdoc
-          cd ..
-          rm -rf hdoc
+
+      - name: Copy hdoc binary
+        run: |
+          sudo cp ${{ env.BUILD_HDOC_DIR }}/hdoc/build/hdoc /hdoc
+          sudo chmod +x /hdoc
           
 
       - name: Configure CMake
@@ -69,8 +80,8 @@ jobs:
 
       - name: Run hdoc to generate documentation
         run: |
-          chmod +x /hdoc
-          /hdoc --verbose 
+          sudo chmod +x /hdoc
+          sudo /hdoc --verbose 
 
       - name: Upload documentation to custom server
         run: |

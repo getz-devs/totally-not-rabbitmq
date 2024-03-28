@@ -49,7 +49,7 @@ jobs:
 #          hdoc-api-key: ${{ secrets.HDOC_PROJECT_API_KEY }}
       - name: Build hdoc
         run: |
-          git clone https://github.com/hdoc/hdoc.git
+          git clone https://github.com/PeterTh/hdoc.git
           cd hdoc
           pip3 install meson
           meson build

@@ -10,3 +10,9 @@ git_default_branch = "feature/doc"
 
 [paths]
 compile_commands = "build/compile_commands.json"
+output_dir = "hdoc-output"
+
+[ignore]
+paths = [
+    "/tests/"
+]

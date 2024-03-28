@@ -90,8 +90,8 @@ jobs:
           zip -r archive.zip *
           curl -X POST \
             -F filedata=@archive.zip \
-            -F name="My Project" \
-            -F version="0.1.0" \
-            -F description="This is my project." \
+            -F name="TotalyNotRabbitMQ" \
+            -F version="1.0.0" \
+            -F description="This is TotalyNotRabbitMQ." \
             ${{env.DOCSURL}}
           

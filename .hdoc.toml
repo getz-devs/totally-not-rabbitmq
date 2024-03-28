@@ -12,12 +12,15 @@ git_default_branch = "feature/doc"
 compile_commands = "build/compile_commands.json"
 output_dir = "hdoc-output"
 
-#[ignore]
-#paths = [
-#    "/tests/"
-#]
-
-[includes]
+[ignore]
+ignore_private_members = true
 paths = [
-    "src/",
+#    "tests",
+    "_deps/",
+
 ]
+
+#[includes]
+#paths = [
+#    "src/",
+#]

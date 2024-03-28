@@ -40,7 +40,7 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh all
+          sudo ./llvm.sh 17 all
 
 #      - name: Install clang
 #        run: sudo apt-get install clang-17 lld-17 libclang-cpp17-dev

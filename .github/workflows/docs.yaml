@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies, then configure and build project
         run: |
-          sudo apt install build-essential cmake ninja-build clang-14 lld-14 libclang-cpp-dev
+          sudo apt install build-essential cmake ninja-build
 #           cmake -GNinja -Bbuild -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 #           ninja -C build  # Optional, you don't need to build the project to use hdoc
 
@@ -39,14 +39,9 @@ jobs:
       - name: Install LLVM
         run: sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 
-      - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="conan_provider.cmake" -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      - name: Install clang
+        run: sudo apt-get install clang-17 lld-17 libclang-cpp17-dev
 
-#      - name: Run hdoc to generate documentation and push it to docs.hdoc.io
-#        uses: hdoc/hdoc-github-action@v2
-#        with:
-#          compile-commands-path: build/compile_commands.json
-#          hdoc-api-key: ${{ secrets.HDOC_PROJECT_API_KEY }}
       - name: Build hdoc
         run: |
           git clone https://github.com/PeterTh/hdoc.git
@@ -55,8 +50,19 @@ jobs:
           CC=clang-17 CXX=clang++-17 CPP=clang-cpp-17 meson build
           sudo ninja -C build
           cp build/hdoc ${{github.workspace}}
+          
 
-      - name: Download hdoc binary and run it
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="conan_provider.cmake" -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+#      - name: Run hdoc to generate documentation and push it to docs.hdoc.io
+#        uses: hdoc/hdoc-github-action@v2
+#        with:
+#          compile-commands-path: build/compile_commands.json
+#          hdoc-api-key: ${{ secrets.HDOC_PROJECT_API_KEY }}
+
+
+      - name: Run hdoc to generate documentation
         run: |
           cd ${{github.workspace}}
           chmod +x hdoc

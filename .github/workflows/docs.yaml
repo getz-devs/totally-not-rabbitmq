@@ -69,7 +69,6 @@ jobs:
 
       - name: Run hdoc to generate documentation
         run: |
-          cd ${{github.workspace}}
           chmod +x hdoc
           ./hdoc --verbose 
 

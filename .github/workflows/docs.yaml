@@ -92,14 +92,27 @@ jobs:
           sudo chmod +x /hdoc
           sudo /hdoc --verbose 
 
-      - name: Upload documentation to custom server
+      - name: zip documentation
         run: |
           cd hdoc-output
           sudo zip -r archive.zip *
+          cd ..
+
+      - name: send documentation to telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: "Documentation for TotalyNotRabbitMQ has been generated and uploaded to the server."
+          document: hdoc-output/archive.zip
+
+
+      - name: Upload documentation to custom server
+        run: |
+          cd hdoc-output
           sudo curl -X POST \
             -F filedata=@archive.zip \
             -F name="TotalyNotRabbitMQ" \
             -F version="1.0.0" \
             -F description="This is TotalyNotRabbitMQ." \
             ${{vars.DOCSURL}}
-          

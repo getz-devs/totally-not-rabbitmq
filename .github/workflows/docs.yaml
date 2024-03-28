@@ -101,5 +101,5 @@ jobs:
             -F name="TotalyNotRabbitMQ" \
             -F version="1.0.0" \
             -F description="This is TotalyNotRabbitMQ." \
-            ${{env.DOCSURL}}
+            ${{vars.DOCSURL}}
           

@@ -52,7 +52,7 @@ jobs:
           git clone https://github.com/PeterTh/hdoc.git
           cd hdoc
           pip3 install meson
-          meson build
+          CC=clang-17 CXX=clang++-17 CPP=clang-cpp-17 meson build
           sudo ninja -C build
           cp build/hdoc ${{github.workspace}}
 

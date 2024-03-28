@@ -52,7 +52,7 @@ jobs:
           git clone https://github.com/hdoc/hdoc.git
           cd hdoc
           pip3 install meson
-          sudo meson build
+          meson build
           sudo ninja -C build
           cp build/hdoc ${{github.workspace}}
 

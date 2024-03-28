@@ -52,7 +52,7 @@ jobs:
           pip3 install meson
           CC=clang-17 CXX=clang++-17 CPP=clang-cpp-17 meson build
           sudo ninja -C build
-          mv build/hdoc ../hdoc
+          mv build/hdoc ${{github.workspace}}/hdoc
           cd ..
           rm -rf hdoc
           
@@ -69,6 +69,7 @@ jobs:
 
       - name: Run hdoc to generate documentation
         run: |
+          cd ${{github.workspace}}
           chmod +x hdoc
           ./hdoc --verbose 
 

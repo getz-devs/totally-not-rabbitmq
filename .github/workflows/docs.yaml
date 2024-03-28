@@ -15,6 +15,7 @@ jobs:
   build:
     env:
       BUILD_TYPE: 'Debug'
+      BUILD_MESON_DIR: '/tmp/build'
     runs-on: ubuntu-latest
 
     steps:
@@ -43,10 +44,18 @@ jobs:
 #        with:
 #          compile-commands-path: build/compile_commands.json
 #          hdoc-api-key: ${{ secrets.HDOC_PROJECT_API_KEY }}
+      - name: Build hdoc
+        run: |
+          git clone https://github.com/hdoc/hdoc.git
+          cd hdoc
+          pip3 install meson
+          meson build
+          ninja -C build
+          cp build/hdoc ${{github.workspace}}
 
       - name: Download hdoc binary and run it
         run: |
-          wget https://app.hdoc.io/releases/download_release/13/ -O hdoc
+          cd ${{github.workspace}}
           chmod +x hdoc
           ./hdoc --verbose 
 

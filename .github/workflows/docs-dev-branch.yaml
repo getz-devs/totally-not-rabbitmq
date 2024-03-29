@@ -4,9 +4,9 @@ name: notRabbit
 # Triggers the workflow on push or pull request events but only for the main branch
 on:
   push:
-    branches: [ feature/doc ]
+    branches: [ dev ]
   pull_request:
-    branches: [ feature/doc ]
+    branches: [ dev ]
   workflow_dispatch:
 
 
@@ -97,7 +97,7 @@ jobs:
           cd hdoc-output
           sudo curl -X POST \
             -F filedata=@archive.zip \
-            -F name="TotalyNotRabbitMQ" \
-            -F version="1.0.0.featuredoc" \
+            -F name="TotalyNotRabbitMQDevBranch" \
+            -F version="1.0.0" \
             -F description="This is TotalyNotRabbitMQ." \
             ${{vars.DOCSURL}}

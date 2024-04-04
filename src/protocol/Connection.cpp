@@ -6,7 +6,15 @@
 #include "protocol/STIP.h"
 #include "protocol/Session.h"
 
+
 namespace STIP {
+    /// \brief Connection конструктор
+    ///
+    /// Конструктор класса Connection
+    /// Создает объект Connection
+    ///
+    /// \param endpoint - адрес и порт подключения
+    /// \param socket
     Connection::Connection(udp::endpoint &endpoint, udp::socket *socket) {
         this->endpoint = endpoint;
         this->socket = socket;
@@ -14,6 +22,12 @@ namespace STIP {
         this->sessionManager = new SessionManager();
     }
 
+    /// \brief Добавление пакета в очередь обработки
+    ///
+    /// Добавляет пакет в очередь для данного соединения
+    /// После добавления пакета в очередь, уведомляет поток обработки пакетов
+    ///
+    /// \param packet
     void Connection::addPacket(const STIP_PACKET &packet) {
         std::lock_guard<std::mutex> lock(mtx);
         packetQueue.push(packet);
@@ -22,6 +36,14 @@ namespace STIP {
         std::cout << "Packet added to queue" << std::endl;
     }
 
+    /// \brief Получение пакета из очереди
+    ///
+    /// Получает пакет из очереди
+    /// Если очередь пуста, ждет пока не появится пакет
+    /// Возвращает пакет и результат выполнения
+    ///
+    /// \param result
+    /// \return packet
     STIP_PACKET Connection::getPacket(bool &result) {
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] { return !packetQueue.empty(); }); // TODO условие дописать для stop_processing
@@ -35,7 +57,12 @@ namespace STIP {
         return packet;
     }
 
-// destructor
+    /// \brief Connection деструктор
+    ///
+    /// Деструктор класса Connection
+    /// Останавливает поток обработки пакетов
+    /// Удаляет объект SessionManager
+    ///
     Connection::~Connection() {
         // remove connection from manager
 
@@ -51,11 +78,24 @@ namespace STIP {
 
     }
 
+    /// \brief Установка статуса соединения
+    ///
+    /// Устанавливает статус соединения
+    ///
+    /// \param status - статус соединения
     void Connection::setConnectionStatus(char status) {
         connectionStatus = status;
     }
 
-
+    /// \brief Отправка пинга(получение версии протокола)
+    ///
+    /// Создает сессию отправки и обработки пинга PingSession
+    /// Добавляет объект PingSession в SessionManager
+    /// Отправляет пинг
+    /// Ждет ответ
+    /// Удаляет объект PingSession из SessionManager
+    ///
+    /// \return result - версия протокола
     uint32_t Connection::pingVersion() {
         uint32_t session_id = sessionManager->generateSessionId();
         auto *session = new PingSession(session_id);
@@ -78,6 +118,17 @@ namespace STIP {
         // TODO: Add timeout and  error handling
     }
 
+    /// \brief Отправка сообщения
+    ///
+    /// Создает сессию отправки сообщения SendMessageSession
+    /// Добавляет объект SendMessageSession в SessionManager
+    /// Отправляет сообщение
+    /// Ждет подтверждения
+    /// Удаляет объект SendMessageSession из SessionManager
+    ///
+    /// \param data - указатель на данные
+    /// \param size - размер данных в байтах
+    /// \return result
     bool Connection::sendMessage(void *data, size_t size) {
         uint32_t session_id = sessionManager->generateSessionId();
         auto *session = new SendMessageSession(session_id, data, size, socket, endpoint);

@@ -37,6 +37,10 @@ namespace STIP {
         SessionManager *sessionManager = nullptr;
         bool isRunning = false;
 
+        /// \brief Обработка пакетов
+        ///
+        /// Обработка пакетов из очереди
+        ///
         void processThread();
 
         // message
@@ -45,29 +49,84 @@ namespace STIP {
         std::condition_variable messageCv;
 
     public:
+        /// \brief Connection конструктор
+        ///
+        /// Конструктор класса Connection
+        /// Создает объект Connection
+        ///
+        /// \param endpoint - адрес и порт подключения
+        /// \param socket
         Connection(udp::endpoint &endpoint, udp::socket *socket);
 
-        void sendData(void *data, size_t size);
-
+        /// \brief Отправка пинга(получение версии протокола)
+        ///
+        /// Создает сессию отправки и обработки пинга PingSession
+        /// Добавляет объект PingSession в SessionManager
+        /// Отправляет пинг
+        /// Ждет ответ
+        /// Удаляет объект PingSession из SessionManager
+        ///
+        /// \return версия протокола
         uint32_t pingVersion();
 
+        /// \brief Отправка сообщения
+        ///
+        /// Создает сессию отправки сообщения SendMessageSession
+        /// Добавляет объект SendMessageSession в SessionManager
+        /// Отправляет сообщение
+        /// Ждет подтверждения
+        /// Удаляет объект SendMessageSession из SessionManager
+        ///
+        /// \param data - указатель на данные
+        /// \param size - размер данных в байтах
+        /// \return результат отправки
         bool sendMessage(void *data, size_t size);
 
+        /// \brief Отправка сообщения
+        ///
+        /// Вызывает функцию sendMessage с параметрами message.c_str() и message.size()
+        ///
+        /// \param message - текстовое сообщение
+        /// \return результат отправки
         bool sendMessage(const std::string &message);
 
         ReceiveMessageSession *receiveMessage();
 
-
+        /// \brief Добавление пакета в очередь обработки
+        ///
+        /// Добавляет пакет в очередь для данного соединения
+        /// После добавления пакета в очередь, уведомляет поток обработки пакетов
+        ///
+        /// \param
         void addPacket(const STIP_PACKET &packet);
 
+        /// \brief Получение пакета из очереди
+        ///
+        /// Получает пакет из очереди
+        /// Если очередь пуста, ждет пока не появится пакет
+        /// Возвращает пакет и результат выполнения
+        ///
+        /// \param result
+        /// \return packet
         STIP_PACKET getPacket(bool &result);
 
+        /// \brief Установка статуса соединения
+        ///
+        /// Устанавливает статус соединения
+        ///
+        /// \param status - статус соединения
         void setConnectionStatus(char status);
 
         void startProcessing();
 
         void stopProcessing();
 
+        /// \brief Connection деструктор
+        ///
+        /// Деструктор класса Connection
+        /// Останавливает поток обработки пакетов
+        /// Удаляет объект SessionManager
+        ///
         ~Connection();
     };
 

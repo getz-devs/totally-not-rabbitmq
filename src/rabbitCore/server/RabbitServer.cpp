@@ -11,7 +11,6 @@ using namespace STIP;
 using boost::asio::ip::udp;
 
 
-
 RabbitServer::RabbitServer(int port) {
     this->port = port;
 }
@@ -22,31 +21,6 @@ void RabbitServer::init() {
     // Создаем UDP сокет для приема запросов на порту 12345
     server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
 //    server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
-
-    auto storage = make_storage("db.sqlite",
-                                make_table("users",
-                                           make_column("id",
-                                                       &User::id,
-                                                       autoincrement(),
-                                                       primary_key()),
-                                           make_column("first_name",
-                                                       &User::firstName),
-                                           make_column("last_name",
-                                                       &User::lastName),
-                                           make_column("birth_date",
-                                                       &User::birthDate),
-                                           make_column("image_url",
-                                                       &User::imageUrl),
-                                           make_column("type_id",
-                                                       &User::typeId)),
-                                make_table("user_types",
-                                           make_column("id",
-                                                       &UserType::id,
-                                                       autoincrement(),
-                                                       primary_key()),
-                                           make_column("name",
-                                                       &UserType::name,
-                                                       default_value("name_placeholder"))));
 }
 
 void RabbitServer::startPolling() {
@@ -58,13 +32,99 @@ void RabbitServer::startPolling() {
         std::thread(&RabbitServer::processConnection, this, connection).detach();
     }
 }
+bool RabbitServer::validateRequest(json request) {
+    // Action is required
+    std::string action;
+    try {
+        action = request["action"];
+    } catch (json::exception &e) {
+        std::cerr << "Error parsing action: " << e.what() << std::endl;
+        return false;
+    }
 
+    if (action == "register") {
+        // Type is required for register action
+        std::string type;
+        try {
+            type = request["type"];
+
+        } catch (json::exception &e) {
+            std::cerr << "Error parsing type: " << e.what() << std::endl;
+            return false;
+        }
+    } else if (action == "send") {
+        std::string queue;
+        try {
+            queue = request["queue"];
+        } catch (json::exception &e) {
+            std::cerr << "Error parsing queue: " << e.what() << std::endl;
+            return false;
+        }
+    } else {
+        std::cerr << "Unknown action: " << action << std::endl;
+        return false;
+    }
+    return true;
+}
+
+void RabbitServer::clientProccess(STIP::Connection *connection) {
+    std::cout << "Connection accepted\n\n" << std::endl;
+
+    auto receiveMessage = connection->receiveMessage();
+    json request;
+
+    // validate request
+    if (validateRequest(request)) {
+        // process request
+        std::string action = request["action"];
+        if (action == "register") {
+            // register
+            std::string type = request["type"];
+            if (type == "worker") {
+                // register worker
+                // create worker session
+
+            } else if (type == "client") {
+                // register client
+                // create client session
+
+            }
+        }
+    }
+    delete receiveMessage;
+    delete connection;
+}
+
+/*
+ * Process connection
+ * Занимается обработкой первичного соединения. Позже вызывает отдельно методы для обработки клиентов и воркеров
+ */
 void RabbitServer::processConnection(STIP::Connection *connection) {
     std::cout << "Connection accepted\n\n" << std::endl;
 
-    std::string message = "Hello, I'm Ilya";
-    connection->sendMessage(message);
+    auto receiveMessage = connection->receiveMessage();
+    json request;
 
-//    ReceiveMessageSession *received = connection->receiveMessage();
-//    std::cout << "Received message: " << received->getDataAsString() << std::endl;
+    // validate request
+    if (validateRequest(request)) {
+        // process request
+        std::string action = request["action"];
+        if (action == "register") {
+            // register
+            std::string type = request["type"];
+            if (type == "worker") {
+                // register worker
+                // create worker session
+
+            } else if (type == "client") {
+                // register client
+                // create client session
+
+            }
+        }
+    }
+
+    // TODO: тут нужны умные указатели по идее
+    delete receiveMessage;
+    delete connection;
 }

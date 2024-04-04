@@ -8,27 +8,35 @@
 #include <boost/asio.hpp>
 #include <sqlite_orm/sqlite_orm.h>
 #include "protocol/Connection.h"
+#include "services/TaskService.h"
+#include <nlohmann/json.hpp>
 
 using boost::asio::ip::udp;
 using namespace sqlite_orm;
+using json = nlohmann::json;
 
 class RabbitServer {
-    public:
-        RabbitServer(int port);
+public:
+    RabbitServer(int port);
 
-        void init();
-        void startPolling();
+    void init();
 
-        void processConnection(STIP::Connection *connection);
+    void startPolling();
 
-        ~RabbitServer() {
-            delete server_socket;
-        }
-    private:
-        int port;
-        boost::asio::io_context io_context;
-        udp::socket* server_socket;
+    void processConnection(STIP::Connection *connection);
 
+    ~RabbitServer() {
+        delete server_socket;
+    }
+
+private:
+    int port;
+    boost::asio::io_context io_context;
+    udp::socket *server_socket;
+    TaskService taskService;
+
+//        json parseMessage(std::string message);
+    static bool validateRequest(json request);
 };
 
 

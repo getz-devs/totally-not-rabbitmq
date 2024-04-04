@@ -38,7 +38,7 @@ add_executable(rabbitServerL3cmd
         src/rabbitCore/server/RabbitServer.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
-
+        src/services/TaskService.cpp
 )
 
 add_executable(STIPTest
@@ -74,6 +74,8 @@ CPMAddPackage(
 
 find_package(SqliteOrm)
 find_package(argparse)
+find_package(nlohmann_json)
+
 #find_package(asio REQUIRED)
 
 target_link_libraries(rabbitServerL2Example PRIVATE
@@ -89,6 +91,7 @@ target_link_libraries(rabbitServerL3cmd PRIVATE
         Boost::asio ws2_32
         argparse::argparse
         sqlite_orm::sqlite_orm
+        nlohmann_json::nlohmann_json
 )
 
 # ---- Create test executable ----

@@ -3,3 +3,12 @@
 //
 
 #include "TaskService.h"
+
+
+TaskService::TaskService() {
+    storage.sync_schema();
+}
+
+void TaskService::addTask() {
+
+}

@@ -22,4 +22,4 @@ pip install conan
 where conan
 ```
 
-![Image alt](../media/config2.png)
+![Image alt](media/config2.png)

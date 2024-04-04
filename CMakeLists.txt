@@ -32,6 +32,8 @@ add_executable(rabbitClientL2Example
         src/protocol/Session.cpp
 )
 
+# -- L3
+
 add_executable(rabbitServerL3cmd
         src/cmd/serverMain.cpp
         src/server/STIPServer.cpp
@@ -40,6 +42,24 @@ add_executable(rabbitServerL3cmd
         src/protocol/Session.cpp
         src/services/TaskService.cpp
 )
+
+add_executable(rabbitClientL3cmd
+        src/cmd/clientMain.cpp
+        src/client/STIPClient.cpp
+        src/rabbitCore/client/RabbitClient.cpp
+        src/protocol/Connection.cpp
+        src/protocol/Session.cpp
+)
+
+add_executable(rabbitWorkerL3cmd
+        src/cmd/workerMain.cpp
+        src/client/STIPClient.cpp
+        src/rabbitCore/worker/RabbitWorker.cpp
+        src/protocol/Connection.cpp
+        src/protocol/Session.cpp
+)
+
+# -- Tests
 
 add_executable(STIPTest
         src/server/STIPServer.cpp
@@ -87,6 +107,8 @@ target_link_libraries(rabbitClientL2Example PRIVATE
 #        asio::asio
 )
 
+# -- L3
+
 target_link_libraries(rabbitServerL3cmd PRIVATE
         Boost::asio ws2_32
         argparse::argparse
@@ -94,7 +116,20 @@ target_link_libraries(rabbitServerL3cmd PRIVATE
         nlohmann_json::nlohmann_json
 )
 
+target_link_libraries(rabbitClientL3cmd PRIVATE
+        Boost::asio ws2_32
+        argparse::argparse
+        nlohmann_json::nlohmann_json
+)
+
+target_link_libraries(rabbitWorkerL3cmd PRIVATE
+        Boost::asio ws2_32
+        argparse::argparse
+        nlohmann_json::nlohmann_json
+)
+
 # ---- Create test executable ----
+
 target_link_libraries(STIPTest
         GTest::gtest_main
         Boost::asio ws2_32

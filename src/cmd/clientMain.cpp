@@ -2,18 +2,21 @@
 // Created by Serge on 23.03.2024.
 //
 
-#include "rabbitCore/server/RabbitServer.h"
+#include "rabbitCore/client/RabbitClient.h"
 #include <argparse/argparse.hpp>
 #include <iostream>
 
 int main(int argc, const char *argv[]) {
-    argparse::ArgumentParser program("RabbitServer");
+    argparse::ArgumentParser program("RabbitClient");
+    program.add_argument("-h", "--host")
+            .help("Server Host")
+            .default_value("localhost");
     program.add_argument("-p", "--port")
-            .help("Port to listen")
+            .help("Server Port")
             .default_value(12345)
             .action([](const std::string &value) { return std::stoi(value); });
-    program.add_description("RabbitServer");
-    program.add_epilog("RabbitServer is a server for Rabbit project");
+    program.add_description("RabbitClient");
+    program.add_epilog("RabbitClient is a client for Rabbit project");
 
     try {
         program.parse_args(argc, argv);
@@ -23,9 +26,10 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
 
+    std::string host = program.get<std::string>("--host");
     int port = program.get<int>("--port");
-    RabbitServer server(12345);
-    server.init();
-//    server.startPolling();
+    RabbitClient client(host, port);
+    client.init();
+//    client.startPolling();
     return 0;
 }

@@ -12,7 +12,6 @@ namespace STIP {
         this->connectionManager = new ConnectionManager(socket);
     }
 
-
     void STIPClient::receiveProcess() {
         std::cout << "Start listen" << std::endl;
         while (isRunning) {
@@ -29,7 +28,6 @@ namespace STIP {
             connectionManager->accept(remote_endpoint, packet[0]);
         }
     }
-
 
     Connection *STIPClient::connect(udp::endpoint &targetEndpoint) {
         // TODO: Add error handling

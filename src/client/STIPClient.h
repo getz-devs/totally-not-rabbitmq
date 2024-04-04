@@ -31,7 +31,6 @@ namespace STIP {
 
         void receiveProcess();
     };
-
 }
 
 #endif //RABBIT_STIPCLIENT_H

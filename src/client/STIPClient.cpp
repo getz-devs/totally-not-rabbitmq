@@ -4,6 +4,12 @@
 
 
 #include "STIPClient.h"
+#include <future>
+#include <chrono>
+
+#include "protocol/errors/STIP_errors.h"
+
+using namespace std::chrono_literals;
 
 namespace STIP {
 
@@ -24,39 +30,63 @@ namespace STIP {
                 return;
 //            throw boost::system::system_error(error);
             }
-            std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port() << std::endl;
+            std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port()
+                      << std::endl;
 
             connectionManager->accept(remote_endpoint, packet[0]);
         }
     }
 
 
-    Connection *STIPClient::connect(udp::endpoint &targetEndpoint) {
-        // TODO: Add error handling
+    Connection *STIPClient::connect(udp::endpoint &targetEndpoint, std::chrono::milliseconds timeout) {
 
         auto *connection = new Connection(targetEndpoint, socket);
         this->connectionManager->addConnection(targetEndpoint, connection);
-        STIP_PACKET packet[1] = {};
-        packet[0].header.command = 100;
-        packet[0].header.size = sizeof(int);
 
-        this->socket->send_to(boost::asio::buffer(packet, packet[0].header.size), targetEndpoint);
-        bool result = false;
-        STIP_PACKET response = connection->getPacket(result);
 
-        // TODO: Add better error handling
-        if (!result) {
-            throw std::runtime_error("Error while waiting for response");
-        }
-        if (response.header.command == 101) {
-            packet[0].header.command = 102;
-            packet[0].header.size = sizeof(int);
-            this->socket->send_to(boost::asio::buffer(packet, packet[0].header.size), targetEndpoint);
+        STIP_PACKET initPacket[1] = {};
+        initPacket[0].header.command = 100;
+        initPacket[0].header.size = sizeof(int);
+
+        this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
+        std::future<bool> response_future = std::async(std::launch::async, [connection]() {
+            bool result = false;
+            STIP_PACKET response{};
+            do {
+                response = connection->getPacket(result);
+            } while (result && response.header.command != 101);
+
+            return result;
+        });
+
+        std::future_status status;
+        do {
+            switch (status = response_future.wait_for(timeout); status) {
+                case std::future_status::timeout:
+                    connection->cancelPacketWaiting();
+                    connectionManager->remove(targetEndpoint);
+                    delete connection;
+                    throw STIP::errors::STIPTimeoutException("Timeout while connecting");
+                    break;
+            }
+        } while (status == std::future_status::deferred);
+
+        if (response_future.get()) {
+            initPacket[0].header.command = 102;
+            initPacket[0].header.size = sizeof(int);
+            this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
             connection->setConnectionStatus(102);
             connection->startProcessing();
             return connection;
         }
-        throw std::runtime_error("Error while connecting");
+
+    }
+
+    Connection *STIPClient::connect(udp::endpoint &targetEndpoint) {
+        return connect(
+                targetEndpoint,
+                std::chrono::milliseconds(10000)
+        );
     }
 
     void STIPClient::startListen() {

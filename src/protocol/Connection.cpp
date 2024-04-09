@@ -24,7 +24,9 @@ namespace STIP {
 
     STIP_PACKET Connection::getPacket(bool &result) {
         std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] { return !packetQueue.empty(); }); // TODO условие дописать для stop_processing
+        countPacketWaiting++;
+        cv.wait(lock, [this] { return !packetQueue.empty() || cancelPacketWaitingFlag; });
+        countPacketWaiting--;
         if (packetQueue.empty()) {
             result = false;
             return {};
@@ -33,6 +35,14 @@ namespace STIP {
         STIP_PACKET packet = packetQueue.front();
         packetQueue.pop();
         return packet;
+    }
+
+    void Connection::cancelPacketWaiting() {
+        cancelPacketWaitingFlag = true;
+        while (countPacketWaiting > 0) {
+            cv.notify_one();
+        }
+        cancelPacketWaitingFlag = false;
     }
 
 // destructor
@@ -200,7 +210,7 @@ namespace STIP {
             return;
         }
         isRunning = false;
-        cv.notify_one();
+        cv.notify_all();
     }
 
 

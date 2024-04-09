@@ -37,6 +37,9 @@ namespace STIP {
         SessionManager *sessionManager = nullptr;
         bool isRunning = false;
 
+        int countPacketWaiting = 0;
+        bool cancelPacketWaitingFlag = false;
+
         void processThread();
 
         // message
@@ -61,6 +64,8 @@ namespace STIP {
         void addPacket(const STIP_PACKET &packet);
 
         STIP_PACKET getPacket(bool &result);
+
+        void cancelPacketWaiting();
 
         void setConnectionStatus(char status);
 

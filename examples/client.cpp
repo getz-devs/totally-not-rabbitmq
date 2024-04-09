@@ -26,7 +26,7 @@ int main() {
         STIPClient client(socket);
         client.startListen();
 
-        Connection *connection = client.connect(server_endpoint);
+        Connection *connection = client.connect(server_endpoint, 1000, 3);
         std::cout << "Connection accepted\n\n" << std::endl;
 //        connection->send("Hello, I'm Ilya");
 

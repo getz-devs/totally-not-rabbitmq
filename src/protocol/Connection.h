@@ -90,6 +90,13 @@ namespace STIP {
         /// \return результат отправки
         bool sendMessage(const std::string &message);
 
+        /// \brief Получение пакета из очереди
+        ///
+        /// Получает пакет из очереди
+        /// Если очередь пуста, ждет пока не появится пакет
+        /// Возвращает первый пакет из очереди и удаляет его из очереди
+        ///
+        /// \return
         ReceiveMessageSession *receiveMessage();
 
         /// \brief Добавление пакета в очередь обработки
@@ -117,8 +124,20 @@ namespace STIP {
         /// \param status - статус соединения
         void setConnectionStatus(char status);
 
+        /// \brief Запуск обработки пакетов
+        ///
+        /// Запуск обработки пакетов из очереди
+        /// Запускает поток processThread
+        /// Помечает isRunning как true
+        ///
         void startProcessing();
 
+        /// \brief Остановка обработки пакетов
+        ///
+        /// Останавливает обработку пакетов
+        /// Посылает сигнал на остановку
+        /// Помечает флаг isRunning как false
+        ///
         void stopProcessing();
 
         /// \brief Connection деструктор
@@ -139,19 +158,59 @@ namespace STIP {
         const udp::socket *socket;
 
     public:
+        /// \brief Конструктор ConnectionManager
+        ///
+        /// Конструктор класса ConnectionManager
+        /// Устанавливает ссылку на сокет
+        ///
+        /// \param socket - ссылка на сокет
         explicit ConnectionManager(const udp::socket &socket);
 
-
+        /// \brief Обработка пакета
+        ///
+        /// Обработка пакетов из очереди
+        /// Устанавливает соединение для пакета
+        ///
+        /// \param endpoint - адрес и порт подключения
+        /// \param packet - пакет
         void accept(const udp::endpoint &endpoint, const STIP_PACKET &packet);
 
+        /// \brief Добавление соединения
+        ///
+        /// Добавляет соединение в список соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
+        /// \param connection - указатель на соединение
         void addConnection(const udp::endpoint &endpoint, Connection *connection);
 
+        /// \brief Проверка наличия соединения
+        ///
+        /// Проверяет наличие соединения в списке соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
+        /// \return возвращает true если соединение есть в списке, иначе false
         bool check(const udp::endpoint &endpoint);
 
+        /// \brief Получение соединения
+        ///
+        /// Получение соединения из списка соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
+        /// \return возвращает указатель на соединение, если соединение есть в списке, иначе nullptr
         Connection *getConnection(const udp::endpoint &endpoint);
 
+        /// \brief Удаление соединения
+        ///
+        /// Удаляет соединение из списка соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
         void remove(const udp::endpoint &endpoint);
 
+        /// \brief Деструктор ConnectionManager
+        ///
+        /// Деструктор класса ConnectionManager
+        /// Удаляет все соединения
+        ///
         ~ConnectionManager();
     };
 

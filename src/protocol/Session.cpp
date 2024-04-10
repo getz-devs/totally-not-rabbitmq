@@ -98,7 +98,7 @@ namespace STIP {
 
         std::unique_lock<std::mutex> lock(mtx);
         status = 0;
-        cv.wait(lock, [this] { return status == 1; });
+        cv.wait(lock, [this] { return status == 1 || _cancaled; });
         return true;
     }
 
@@ -125,8 +125,13 @@ namespace STIP {
 
     bool SendMessageSession::waitApproval() {
         std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] { return (status == 5) || status == 6; });
+        cv.wait(lock, [this] { return (status == 5) || status == 6 || _cancaled; });
         return status == 5;
+    }
+
+    void SendMessageSession::cancel() {
+        _cancaled = true;
+        cv.notify_all();
     }
 
 

@@ -5,6 +5,8 @@
 #include "Connection.h"
 #include "protocol/STIP.h"
 #include "protocol/Session.h"
+#include "protocol/errors/STIP_errors.h"
+#include <future>
 
 namespace STIP {
     Connection::Connection(udp::endpoint &endpoint, udp::socket *socket) {
@@ -92,15 +94,67 @@ namespace STIP {
         uint32_t session_id = sessionManager->generateSessionId();
         auto *session = new SendMessageSession(session_id, data, size, socket, endpoint);
         sessionManager->addSession(session);
-        session->initSend();
-        session->sendData();
-        bool result = session->waitApproval();
 
+        // use future wait
+        bool timedOut = false;
+        std::future<bool> response_future = std::async(std::launch::async, [session]() {
+            return session->initSend();
+        });
+        std::future_status status;
+
+        do {
+            switch (status = response_future.wait_for(std::chrono::milliseconds(1000)); status) {
+                case std::future_status::timeout:
+                    session->cancel();
+                    timedOut = true;
+                    break;
+            }
+        } while (status == std::future_status::deferred);
+
+        if (timedOut) {
+            sessionManager->deleteSession(session);
+            delete session;
+
+            throw STIP::errors::STIPTimeoutException("No response for init message");
+        }
+
+        // Endpoint rejected message (maybe overloaded)
+        if (!response_future.get()) {
+            sessionManager->deleteSession(session);
+            delete session;
+            return false;
+        }
+
+
+
+
+        // Send data
+        session->sendData();
+
+        // wait for approval
+        timedOut = false;
+        std::future<bool> approval_future = std::async(std::launch::async, [session]() {
+            return session->waitApproval();
+        });
+
+        do {
+            switch (status = approval_future.wait_for(std::chrono::milliseconds(1000)); status) {
+                case std::future_status::timeout:
+                    session->cancel();
+                    timedOut = true;
+                    break;
+            }
+        } while (status == std::future_status::deferred);
+
+        if (timedOut) {
+            sessionManager->deleteSession(session);
+            delete session;
+
+            throw STIP::errors::STIPTimeoutException("No response for data message");
+        }
         sessionManager->deleteSession(session);
         delete session;
-
-
-        return result;
+        return true;
     }
 
     bool Connection::sendMessage(const std::string &message) {

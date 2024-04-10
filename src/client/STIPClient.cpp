@@ -39,7 +39,6 @@ namespace STIP {
 
 
     Connection *STIPClient::connect(udp::endpoint &targetEndpoint, std::chrono::milliseconds timeout) {
-        // TODO: Add error handling
 
         auto *connection = new Connection(targetEndpoint, socket);
         this->connectionManager->addConnection(targetEndpoint, connection);

@@ -85,9 +85,12 @@ namespace STIP {
 
         bool waitApproval();
 
+        void cancel();
+
     private:
         std::mutex mtx;
         std::condition_variable cv;
+        bool _cancaled = false;
 
         void *data = nullptr;
         size_t size = 0;

@@ -10,7 +10,8 @@
 #include <functional>
 #include <atomic>
 
-
+// I need Timer class for Receive Message Session
+// I will use it for timeout. Every request to Receive
 class Timer {
 private:
     std::chrono::milliseconds timeout;

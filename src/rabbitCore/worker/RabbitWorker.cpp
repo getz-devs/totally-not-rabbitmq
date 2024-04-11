@@ -1,5 +1,5 @@
 //
-// Created by Den on 23.03.2024.
+// Created by Serge on 23.03.2024.
 //
 
 #include "RabbitWorker.h"
@@ -35,9 +35,21 @@ void RabbitWorker::init() {
 
 void RabbitWorker::startPolling() {
 //    STIPServer server(*server_socket);
-    STIP::ReceiveMessageSession *received = connection->receiveMessage();
+//    STIP::ReceiveMessageSession *received = connection->receiveMessage();
 
     for (;;) {
+        STIP::ReceiveMessageSession *received = connection->receiveMessage();
+        json request = received->getDataAsString();
+
+        int func = request["func"];
+
+        switch (func) {
+            case 1: // doSimpleMath
+                doSimpleMathHandler(request);
+                break;
+            default:
+                break;
+        }
 
     }
 
@@ -53,6 +65,10 @@ int RabbitWorker::doSimpleMath(int a, int b) {
     int c = a + b;
     std::this_thread::sleep_for(std::chrono::seconds(c));
     return c;
+}
+
+void RabbitWorker::doSimpleMathHandler(json request) {
+
 }
 
 

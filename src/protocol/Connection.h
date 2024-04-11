@@ -49,23 +49,19 @@ namespace STIP {
         std::condition_variable messageCv;
 
     public:
-        // \brief Connection конструктор
-        //
-        // Конструктор класса Connection
-        //
-        // Создает объект Connection
-        //
-        // \param endpoint - адрес и порт подключения
-        // \param socket
+        /// \brief Connection конструктор
+        ///
+        /// Конструктор класса Connection
+        ///
+        /// \param endpoint - адрес и порт подключения
+        /// \param socket
         Connection(udp::endpoint &endpoint, udp::socket *socket);
 
         /// \brief Отправка пинга(получение версии протокола)
         ///
         /// Создает сессию отправки и обработки пинга PingSession
-        /// Добавляет объект PingSession в SessionManager
-        /// Отправляет пинг
-        /// Ждет ответ
-        /// Удаляет объект PingSession из SessionManager
+        /// (обавляет объект PingSession в SessionManager).
+        ///  Отправляет пинг, ждет ответ, удаляет объект PingSession из SessionManager
         ///
         /// \return версия протокола
         uint32_t pingVersion();

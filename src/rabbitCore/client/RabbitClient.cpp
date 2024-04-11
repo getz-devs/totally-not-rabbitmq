@@ -21,3 +21,7 @@ RabbitClient::RabbitClient(std::string host, int port) {
 void RabbitClient::init() {
     server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
 }
+
+void receiveResutls() {
+
+}

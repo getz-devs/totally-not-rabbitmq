@@ -23,6 +23,7 @@ public:
     // void processConnection(STIP::Connection *connection);
     //
 
+    void receiveResutls();
 
     ~RabbitClient() {
         delete server_socket;

@@ -23,6 +23,8 @@ void RabbitWorker::init() {
     server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
 }
 
+// worker function implementations
+
 void RabbitWorker::doWait(int seconds) {
     std::this_thread::sleep_for(std::chrono::seconds(seconds));
 }

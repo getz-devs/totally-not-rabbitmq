@@ -49,14 +49,14 @@ namespace STIP {
         std::condition_variable messageCv;
 
     public:
-        /// \brief Connection конструктор
-        ///
-        /// Конструктор класса Connection
-        ///
-        /// Создает объект Connection
-        ///
-        /// \param endpoint - адрес и порт подключения
-        /// \param socket
+        // \brief Connection конструктор
+        //
+        // Конструктор класса Connection
+        //
+        // Создает объект Connection
+        //
+        // \param endpoint - адрес и порт подключения
+        // \param socket
         Connection(udp::endpoint &endpoint, udp::socket *socket);
 
         /// \brief Отправка пинга(получение версии протокола)

@@ -34,7 +34,7 @@ private:
     std::string host;
     int port;
     int cores;
-    Connection connection{};
+    STIP::Connection *connection;
 
     boost::asio::io_context io_context;
     udp::socket *server_socket{};

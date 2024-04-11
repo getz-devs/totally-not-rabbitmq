@@ -1,5 +1,5 @@
 //
-// Created by Serge on 23.03.2024.
+// Created by Den on 23.03.2024.
 //
 
 #include "RabbitWorker.h"
@@ -9,8 +9,6 @@
 #include "server/STIPServer.h"
 #include "protocol/Connection.h"
 #include "client/STIPClient.h"
-
-using namespace STIP;
 
 using boost::asio::ip::udp;
 
@@ -29,7 +27,7 @@ void RabbitWorker::init() {
     server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
     server_socket->open(udp::v4());
 
-    STIPClient client(*server_socket);
+    STIP::STIPClient client(*server_socket);
     client.startListen();
 
     connection = client.connect(server_endpoint);
@@ -37,7 +35,7 @@ void RabbitWorker::init() {
 
 void RabbitWorker::startPolling() {
 //    STIPServer server(*server_socket);
-    ReceiveMessageSession *received = connection->receiveMessage();
+    STIP::ReceiveMessageSession *received = connection->receiveMessage();
 
     for (;;) {
 

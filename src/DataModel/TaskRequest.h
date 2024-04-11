@@ -11,21 +11,18 @@
 using json = nlohmann::json;
 
 struct TaskRequest {
-    int id;
     std::string func;
     std::string data;
     int cores;
 };
 
 void to_json(json &j, const TaskRequest &tr) {
-    j = json{{"id",    tr.id},
-             {"func",  tr.func},
+    j = json{{"func",  tr.func},
              {"data",  tr.data},
              {"cores", tr.cores}};
 }
 
 void from_json(const json &j, TaskRequest &tr) {
-    j.at("id").get_to(tr.id);
     j.at("func").get_to(tr.func);
     j.at("data").get_to(tr.data);
     j.at("cores").get_to(tr.cores);

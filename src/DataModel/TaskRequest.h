@@ -11,7 +11,7 @@
 using json = nlohmann::json;
 
 struct TaskRequest {
-    std::string func;
+    int func;
     std::string data;
     int cores;
 };

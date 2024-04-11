@@ -233,6 +233,15 @@ namespace STIP {
         sessions.erase(session->getId());
     }
 
+    void SessionManager::deleteSessionById(uint32_t id) {
+        std::lock_guard<std::mutex> lock(mtx);
+
+//        if (sessions.find(id) == sessions.end()) {
+////            throw std::runtime_error("Session with this id not found");
+//        }
+        sessions.erase(id);
+    }
+
 }
 
 

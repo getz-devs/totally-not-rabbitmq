@@ -10,14 +10,21 @@
 #include <functional>
 #include <atomic>
 
-// I need Timer class for Receive Message Session
-// I will use it for timeout. Every request to Receive
+
+
+
+//        Есть поток фьючер который по таймауту вызовет колбэк
+//        Если же условие выполнится раньше - перезапускаем
+//        А условие раньше - это thread lock. Который разблокируется после вызова функции reset
 class Timer {
 private:
     std::chrono::milliseconds timeout;
     std::thread timerThread;
     std::atomic<bool> running = false;
     std::function<void()> callback;
+
+    std::condition_variable cv;
+    std::mutex cvMtx;
 
 public:
     Timer() {
@@ -34,16 +41,19 @@ public:
     }
 
     void start() {
+        if (running) {
+            return;
+        }
         running = true;
         timerThread = std::thread([this] {
-                while (running) {
-                    std::this_thread::sleep_for(timeout);
-                    if (running && callback) {
-                        this->callback();
-                    }
+            while (running) {
+                std::unique_lock<std::mutex> lock(cvMtx);
+                if (cv.wait_for(lock, timeout) == std::cv_status::timeout) {
+                    callback();
                 }
+            }
         });
-        timerThread.detach();
+
     }
 
     bool isRunning() {
@@ -51,7 +61,16 @@ public:
     }
 
     void stop() {
+        if (!running) {
+            return;
+        }
         running = false;
+        cv.notify_one();
+        timerThread.join();
+    }
+
+    void reset() {
+        cv.notify_one();
     }
 
 

@@ -158,6 +158,8 @@ namespace STIP {
 
         void deleteSession(Session *session);
 
+        void deleteSessionById(uint32_t id);
+
         Session *getSession(uint32_t id);
 
         uint32_t generateSessionId();

@@ -87,7 +87,7 @@ namespace STIP {
         delete session;
         return result;
 
-        // TODO: Add timeout and  error handling
+        // TODO: Add timeout and  error handling !!! (next time i'll finished this part)
     }
 
     bool Connection::sendMessage(void *data, size_t size) {
@@ -192,6 +192,7 @@ namespace STIP {
             switch (packet.header.command) {
                 ReceiveMessageSession *tempMsgSession;
                 size_t packet_counts;
+                uint32_t session_id;
                 case 0:
                     // check if session exists
                     if (sessionManager->getSession(packet.header.session_id) != nullptr) {
@@ -210,6 +211,16 @@ namespace STIP {
                                                                socket, endpoint);
                     sessionManager->addSession(tempMsgSession);
                     tempMsgSession->processIncomingPacket(packet);
+                    session_id = packet.header.session_id;
+                    sessionKiller.registerSessionTimeout(
+                            packet.header.session_id,
+                            20000,
+                            [this, session_id] {
+                                Session* temp = sessionManager->getSession(session_id);
+                                sessionManager->deleteSessionById(session_id);
+                                delete temp;
+                            }
+                    );
                     break;
 
                 case 3:
@@ -218,14 +229,18 @@ namespace STIP {
                             packet.header.session_id));
                     if (tempReceiveSession != nullptr) {
                         tempReceiveSession->processIncomingPacket(packet);
+                        sessionKiller.resetSessionTimeout(packet.header.session_id);
+
                     }
 
                     if (tempReceiveSession->getStatus() == 5) {
                         std::lock_guard<std::mutex> lock(messageMtx);
+                        sessionKiller.deleteSessionTimeout(packet.header.session_id);
                         messageQueue.push(tempReceiveSession);
                         std::cout << "Message received, should be notified" << std::endl;
                         messageCv.notify_one();
                     } else if (tempReceiveSession->getStatus() == 6) {
+                        sessionKiller.deleteSessionTimeout(packet.header.session_id);
                         sessionManager->deleteSession(tempReceiveSession);
                         delete tempReceiveSession;
                     }

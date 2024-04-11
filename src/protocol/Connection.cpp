@@ -216,7 +216,7 @@ namespace STIP {
                             packet.header.session_id,
                             20000,
                             [this, session_id] {
-                                Session* temp = sessionManager->getSession(session_id);
+                                auto* temp = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(session_id));
                                 sessionManager->deleteSessionById(session_id);
                                 delete temp;
                             }

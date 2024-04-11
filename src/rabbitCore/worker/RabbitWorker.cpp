@@ -8,6 +8,7 @@
 #include "protocol/STIP.h"
 #include "server/STIPServer.h"
 #include "protocol/Connection.h"
+#include "client/STIPClient.h"
 
 using namespace STIP;
 
@@ -20,7 +21,28 @@ RabbitWorker::RabbitWorker(std::string host, int port, int cores) {
 }
 
 void RabbitWorker::init() {
+    boost::asio::io_context io_context;
+
+    udp::resolver resolver(io_context);
+    udp::endpoint server_endpoint = *resolver.resolve(udp::v4(), host, std::to_string(port)).begin();
+
     server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
+    server_socket->open(udp::v4());
+
+    STIPClient client(*server_socket);
+    client.startListen();
+
+    connection = client.connect(server_endpoint);
+}
+
+void RabbitWorker::startPolling() {
+//    STIPServer server(*server_socket);
+    ReceiveMessageSession *received = connection->receiveMessage();
+
+    for (;;) {
+
+    }
+
 }
 
 // worker function implementations
@@ -34,3 +56,5 @@ int RabbitWorker::doSimpleMath(int a, int b) {
     std::this_thread::sleep_for(std::chrono::seconds(c));
     return c;
 }
+
+

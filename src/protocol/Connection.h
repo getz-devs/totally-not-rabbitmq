@@ -52,6 +52,7 @@ namespace STIP {
         /// \brief Connection конструктор
         ///
         /// Конструктор класса Connection
+        ///
         /// Создает объект Connection
         ///
         /// \param endpoint - адрес и порт подключения

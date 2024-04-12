@@ -33,11 +33,10 @@ private:
     std::string host;
     int port;
 
-    boost::asio::io_context io_context;
-    udp::socket *server_socket;
+    udp::socket *server_socket{};
 
 //        json parseMessage(std::string message);
-    static bool validateRequest(json request);
+//    static bool validateRequest(json request);
 
 
 };

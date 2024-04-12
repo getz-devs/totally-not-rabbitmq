@@ -4,12 +4,14 @@
 
 #include "SessionKiller.h"
 
+#include <utility>
+
 namespace STIP {
 
-    void SessionKiller::registerSessionTimeout(uint32_t sessionId, uint32_t timeout, std::function<void()> callback) {
+    void SessionKiller::registerSessionTimeout(uint32_t sessionId, int timeout, std::function<void()> callback) {
             std::lock_guard<std::mutex> lock(mtx);
             timers[sessionId].setTimeout(timeout);
-            timers[sessionId].setCallback(callback);
+            timers[sessionId].setCallback(std::move(callback));
             timers[sessionId].start();
         }
 

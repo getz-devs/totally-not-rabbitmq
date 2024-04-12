@@ -234,13 +234,14 @@ namespace STIP {
                     }
 
                     if (tempReceiveSession->getStatus() == 5) {
-                        std::lock_guard<std::mutex> lock(messageMtx);
                         sessionKiller.deleteSessionTimeout(packet.header.session_id);
+
+                        std::lock_guard<std::mutex> lock(messageMtx);
                         messageQueue.push(tempReceiveSession);
                         std::cout << "Message received, should be notified" << std::endl;
                         messageCv.notify_one();
+
                     } else if (tempReceiveSession->getStatus() == 6) {
-                        sessionKiller.deleteSessionTimeout(packet.header.session_id);
                         sessionManager->deleteSession(tempReceiveSession);
                         delete tempReceiveSession;
                     }

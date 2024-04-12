@@ -21,11 +21,10 @@ namespace STIP {
         std::mutex mtx;
     public:
         SessionKiller() = default;
-
-        void registerSessionTimeout(uint32_t sessionId, uint32_t timeout, std::function<void()> callback);
+        ~SessionKiller() = default;
+        void registerSessionTimeout(uint32_t sessionId, int timeout, std::function<void()> callback);
         void deleteSessionTimeout(uint32_t sessionId);
         void resetSessionTimeout(uint32_t sessionId);
-
     };
 
 } // STIP

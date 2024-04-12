@@ -9,6 +9,8 @@
 #include "protocol/Connection.h"
 #include <nlohmann/json.hpp>
 #include <adoint_backcompat.h>
+#include <vector>
+#include <iostream>
 
 using boost::asio::ip::udp;
 using json = nlohmann::json;
@@ -45,10 +47,12 @@ private:
 
     // functions (demo for now)
 
+    int simpleMath(int a, int b);
+    int determinant(std::vector<std::vector<int>> matrix, int n);
     static void doWait(int seconds);
-    int doSimpleMath(int a, int b);
 
-    void doSimpleMathHandler(json request);
+    void simpleMathHandler(json data, int taskCores);
+    void determinantHandler(json data, int taskCores);
 
 };
 

@@ -29,6 +29,37 @@ void RabbitServer::startPolling() {
         std::thread(&RabbitServer::processConnection, this, connection).detach();
     }
 }
+
+void RabbitServer::processConnection(STIP::Connection *connection) {
+    std::cout << "Connection accepted\n\n" << std::endl;
+
+    auto receiveMessage = connection->receiveMessage();
+    json request;
+
+    // validate request
+    if (validateRequest(request)) {
+        // process request
+        std::string action = request["action"];
+        if (action == "register") {
+            // register
+            std::string type = request["type"];
+            if (type == "worker") {
+                // register worker
+                // create worker session
+
+            } else if (type == "client") {
+                // register client
+                // create client session
+
+            }
+        }
+    }
+
+    // TODO: тут нужны умные указатели по идее
+    delete receiveMessage;
+    delete connection;
+}
+
 bool RabbitServer::validateRequest(json request) {
     // Action is required
     std::string action;
@@ -96,32 +127,4 @@ bool RabbitServer::validateRequest(json request) {
  * Process connection
  * Занимается обработкой первичного соединения. Позже вызывает отдельно методы для обработки клиентов и воркеров
  */
-void RabbitServer::processConnection(STIP::Connection *connection) {
-    std::cout << "Connection accepted\n\n" << std::endl;
 
-    auto receiveMessage = connection->receiveMessage();
-    json request;
-
-    // validate request
-    if (validateRequest(request)) {
-        // process request
-        std::string action = request["action"];
-        if (action == "register") {
-            // register
-            std::string type = request["type"];
-            if (type == "worker") {
-                // register worker
-                // create worker session
-
-            } else if (type == "client") {
-                // register client
-                // create client session
-
-            }
-        }
-    }
-
-    // TODO: тут нужны умные указатели по идее
-    delete receiveMessage;
-    delete connection;
-}

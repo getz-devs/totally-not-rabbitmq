@@ -14,7 +14,7 @@ namespace STIP {
 // ------------------------------------------------ PingSession.h ------------------------------------------------
 
     void PingSession::processIncomingPacket(STIP_PACKET packet) {
-        if (packet.header.command != 11) {
+        if (packet.header.command != Command::PING_ANSWER ) {
             return;
         }
         std::cout << "PingSession processIncomingPacket" << std::endl;
@@ -40,7 +40,7 @@ namespace STIP {
 
     void PingSession::serverAnswer(udp::socket &socket, udp::endpoint &endpoint, uint32_t sessionId) {
         STIP_PACKET packet[1] = {};
-        packet[0].header.command = 11;
+        packet[0].header.command = Command::PING_ANSWER;
         packet[0].header.session_id = sessionId;
         packet[0].data[0] = STIP_PROTOCOL_VERSION;
         packet[0].header.size = sizeof(STIP_HEADER) + 1;
@@ -51,7 +51,7 @@ namespace STIP {
 
     void SendMessageSession::processIncomingPacket(STIP_PACKET packet) {
         switch (packet.header.command) {
-            case 1:
+            case Command::MSG_INIT_RESPONSE_SUCCESS:
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
 
@@ -59,20 +59,20 @@ namespace STIP {
                 cv.notify_all();
                 break;
 
-            case 2: // BAD
+            case Command::MSG_INIT_RESPONSE_FAILURE : // BAD
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
 
                 status = 2;
                 cv.notify_all();
                 break;
-            case 4: // Resend ask
+            case Command::MSG_RESPONSE_RESEND: // Resend ask
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
 
                 // TODO: Resend
                 break;
-            case 5: // Success
+            case Command::MSG_RESPONSE_ALL_RECEIVED : // Success
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
 
@@ -87,7 +87,7 @@ namespace STIP {
 
     bool SendMessageSession::initSend() {
         STIP_PACKET packet[1] = {};
-        packet[0].header.command = 0;
+        packet[0].header.command = Command::MSG_INIT_REQUEST;
         packet[0].header.session_id = id;
         packet[0].header.packet_id = packet_counts; // means packets count in this case
 
@@ -112,7 +112,7 @@ namespace STIP {
 
     void SendMessageSession::sendPart(size_t packet_id) {
         STIP_PACKET packet[1] = {};
-        packet[0].header.command = 3;
+        packet[0].header.command = Command::MSG_SEND_DATA_PART;
         packet[0].header.session_id = id;
         packet[0].header.packet_id = packet_id;
 
@@ -144,7 +144,7 @@ namespace STIP {
     void ReceiveMessageSession::processIncomingPacket(STIP_PACKET packet) {
         STIP_PACKET packet_response[1] = {};
         switch (packet.header.command) {
-            case 0:
+            case Command::MSG_INIT_REQUEST:
                 if (packet.header.session_id != id) {
                     return;
                 }
@@ -154,12 +154,12 @@ namespace STIP {
                 receivedParts.resize(packet_counts);
                 status = 1;
 
-                packet_response[0].header.command = 1;
+                packet_response[0].header.command = Command::MSG_INIT_RESPONSE_SUCCESS;
                 packet_response[0].header.session_id = id;
                 packet_response[0].header.size = sizeof(STIP_HEADER);
                 socket->send_to(boost::asio::buffer(packet_response, packet_response[0].header.size), endpoint);
                 break;
-            case 3:
+            case Command::MSG_SEND_DATA_PART:
                 if (packet.header.packet_id >= packet_counts) {
                     return;
                 }
@@ -176,7 +176,7 @@ namespace STIP {
             status = 5;
 
             STIP_PACKET packet[1] = {};
-            packet[0].header.command = 5;
+            packet[0].header.command = Command::MSG_RESPONSE_ALL_RECEIVED;
             packet[0].header.session_id = id;
             packet[0].header.size = sizeof(STIP_HEADER);
             socket->send_to(boost::asio::buffer(packet, packet[0].header.size), endpoint);

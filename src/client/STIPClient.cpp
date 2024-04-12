@@ -8,6 +8,7 @@
 #include <chrono>
 
 #include "protocol/errors/STIP_errors.h"
+#include "protocol/Commands.h"
 
 using namespace std::chrono_literals;
 
@@ -45,7 +46,7 @@ namespace STIP {
 
 
         STIP_PACKET initPacket[1] = {};
-        initPacket[0].header.command = 100;
+        initPacket[0].header.command = Command::CONNECTION_SYN;
         initPacket[0].header.size = sizeof(int);
 
         this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
@@ -54,7 +55,7 @@ namespace STIP {
             STIP_PACKET response{};
             do {
                 response = connection->getPacket(result);
-            } while (result && response.header.command != 101);
+            } while (result && response.header.command != Command::CONNECTION_SYN_ACK);
 
             return result;
         });
@@ -72,7 +73,7 @@ namespace STIP {
         } while (status == std::future_status::deferred);
 
         if (response_future.get()) {
-            initPacket[0].header.command = 102;
+            initPacket[0].header.command = Command::CONNECTION_ACK;
             initPacket[0].header.size = sizeof(int);
             this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
             connection->setConnectionStatus(102);

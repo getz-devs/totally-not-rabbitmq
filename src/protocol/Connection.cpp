@@ -74,7 +74,7 @@ namespace STIP {
         sessionManager->addSession(session);
 
         STIP_PACKET packet[1] = {};
-        packet[0].header.command = 10;
+        packet[0].header.command = Command::PING_ASK;
         packet[0].header.session_id = session_id;
         packet[0].header.size = sizeof(STIP_HEADER);
 
@@ -138,7 +138,7 @@ namespace STIP {
         });
 
         do {
-            switch (status = approval_future.wait_for(std::chrono::milliseconds(1000)); status) {
+            switch (status = approval_future.wait_for(std::chrono::milliseconds(5000)); status) {
                 case std::future_status::timeout:
                     session->cancel();
                     timedOut = true;
@@ -193,7 +193,7 @@ namespace STIP {
                 ReceiveMessageSession *tempMsgSession;
                 size_t packet_counts;
                 uint32_t session_id;
-                case 0:
+                case Command::MSG_INIT_REQUEST :
                     // check if session exists
                     if (sessionManager->getSession(packet.header.session_id) != nullptr) {
                         std::cout << "Session already exist" << std::endl;
@@ -223,7 +223,7 @@ namespace STIP {
                     );
                     break;
 
-                case 3:
+                case Command::MSG_SEND_DATA_PART:
                     ReceiveMessageSession *tempReceiveSession;
                     tempReceiveSession = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(
                             packet.header.session_id));
@@ -248,7 +248,7 @@ namespace STIP {
 
                     break;
 
-                case 10:
+                case Command::PING_ASK:
                     // ping
                     std::cout << "Ping received" << std::endl;
                     PingSession::serverAnswer(*socket, endpoint, packet.header.session_id);

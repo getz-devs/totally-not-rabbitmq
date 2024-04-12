@@ -96,8 +96,48 @@ int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
 
 // handlers
 
-void RabbitWorker::simpleMathHandler(json data, int taskCores) {
+//void RabbitWorker::simpleMathHandler(json data, int taskCores) {
+//    std::vector<std::thread> threads;
+//    threads.reserve(taskCores);
+//
+//    std::vector<std::pair<int, int>> pairs = data.get<std::vector<std::pair<int, int>>>();
+//
+//    std::vector<int> results(pairs.size());
+//
+//    for (int i = 0; i < pairs.size(); ++i) {
+//        threads.emplace_back([this, &pairs, &results, i] {
+//            results[i] = this->simpleMath(pairs[i].first, pairs[i].second);
+//        });
+//
+//        if (threads.size() == taskCores || i == pairs.size() - 1) {
+//            for (auto &t : threads) {
+//                t.join();
+//            }
+//            threads.clear();
+//        }
+//    }
+//
+//    json jResults = json::array();
+//    for (int & result : results) {
+//        jResults.push_back(result);
+//    }
+//    TaskResult taskResult{0, jResults.dump(), 1};
+//
+//    json response = taskResult;
+//    connection->sendMessage(response.dump());
+//}
 
+void RabbitWorker::simpleMathHandler(json data, int taskCores) {
+    int a = data["a"];
+    int b = data["b"];
+    int result = simpleMath(a, b);
+
+    json jResult = json::object();
+    jResult["result"] = result;
+    TaskResult taskResult{0, jResult.dump(), 1};
+
+    json response = taskResult;
+    connection->sendMessage(response.dump());
 }
 
 void RabbitWorker::determinantHandler(json data, int taskCores) {

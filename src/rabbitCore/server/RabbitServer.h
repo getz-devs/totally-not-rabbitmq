@@ -9,6 +9,7 @@
 #include <sqlite_orm/sqlite_orm.h>
 #include "protocol/Connection.h"
 #include "services/TaskService/TaskService.h"
+#include "services/UserDBService/UserDBService.h"
 #include <nlohmann/json.hpp>
 
 using boost::asio::ip::udp;
@@ -36,6 +37,7 @@ private:
 
     //
     TaskService taskService;
+    UserDBService userDBService;
 
 //        json parseMessage(std::string message);
     static bool validateRequest(json request);

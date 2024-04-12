@@ -41,6 +41,7 @@ add_executable(rabbitServerL3cmd
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
         src/services/TaskService/TaskService.cpp
+        src/services/UserDBService/UserDBService.cpp
 )
 
 add_executable(rabbitClientL3cmd

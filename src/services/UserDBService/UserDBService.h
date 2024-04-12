@@ -10,11 +10,13 @@
 
 class UserDBService {
 public:
-    UserDBService();
+    UserDBService() {
+        clients = std::vector<Client>();
+        workers = std::vector<Worker>();
+    };
 
-    void addClient(Client client) { clients.push_back(client); };
-
-    void addWorker(Worker worker) { workers.push_back(worker); };
+    void addClient(const Client& client) { clients.push_back(client); };
+    void addWorker(const Worker& worker) { workers.push_back(worker); };
 
     Worker findMostFreeWorker();
 
@@ -22,8 +24,6 @@ public:
 private:
     std::vector<Client> clients;
     std::vector<Worker> workers;
-
 };
-
 
 #endif //RABBIT_USERDBSERVICE_H

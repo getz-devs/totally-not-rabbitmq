@@ -30,9 +30,27 @@ void RabbitClient::init() {
     STIPClient client(*server_socket);
     client.startListen();
 
-    Connection *connection = client.connect(server_endpoint);
+    connection = client.connect(server_endpoint);
 }
 
-void receiveResutls() {
+void RabbitClient::receiveResutls() {
+    for (;;) {
+        STIP::ReceiveMessageSession *received = connection->receiveMessage();
+        json result = received->getDataAsString();
+        json data = result["data"];
 
+        if (data.is_array()) {
+            for (auto &row: data) {
+                std::cout << row << std::endl;
+            }
+        } else {
+            std::cout << data << std::endl;
+
+        }
+    }
+}
+
+void RabbitClient::sendTask(TaskRequest t) {
+    json task = t;
+    connection->sendMessage(task.dump());
 }

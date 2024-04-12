@@ -3,38 +3,62 @@
 //
 
 #include "rabbitCore/client/RabbitClient.h"
+#include "DataModel/TaskRequest.h"
 #include <argparse/argparse.hpp>
+#include <nlohmann/json.hpp>
 #include <iostream>
+#include <vector>
 
-std::string promptMatrixMultTask() {
-    int matrixRows, matrixCols;
-    std::cout << "Enter matrix rows:" << std::endl;
+std::string promptSimpleMathTask() {
+    json data;
+    int num;
+    std::cout << "Enter number one:" << std::endl;
     std::cout << "> ";
-    std::cin >> matrixRows;
-    std::cout << "Enter matrix cols:" << std::endl;
+    std::cin >> num;
+    data["a"] = num;
+    std::cout << "Enter number two:" << std::endl;
     std::cout << "> ";
-    std::cin >> matrixCols;
-    int matrix[matrixRows][matrixCols];
+    std::cin >> num;
+    data["b"] = num;
+    return data.dump();
+}
 
-    for (int i = 0; i < matrixRows; i++) {
-        // enter row as str with space as delimiter
-        std::string rowStr;
-        std::cout << "Enter row " << i << " of matrix:" << std::endl;
-        std::cout << "> ";
-        std::cin >> rowStr;
-        // split rowStr by space
-        std::string delimiter = " ";
-        size_t pos = 0;
-        std::string token;
-        int j = 0;
-        while ((pos = rowStr.find(delimiter)) != std::string::npos) {
-            token = rowStr.substr(0, pos);
-            matrix[i][j] = std::stoi(token);
-            rowStr.erase(0, pos + delimiter.length());
-            j++;
+std::string promptMatrixDeterminantTask() {
+    int matrixSize, matrixCount;
+    std::cout << "Enter matrix size:" << std::endl;
+    std::cout << "> ";
+    std::cin >> matrixSize;
+    std::cout << "Enter matrix count:" << std::endl;
+    std::cout << "> ";
+    std::cin >> matrixCount;
+
+    std::vector<std::vector<std::vector<int>>> matrices;
+
+    for (int i = 0; i < matrixCount; i++) {
+        std::vector<std::vector<int>> matrix;
+        for (int j = 0; j < matrixSize; j++) {
+            std::vector<int> row;
+            for (int k = 0; k < matrixSize; k++) {
+                row.push_back(rand() % 100);
+            }
+            matrix.push_back(row);
         }
-        matrix[i][j] = std::stoi(rowStr);
+        matrices.push_back(matrix);
     }
+
+    json data = json::array();
+    for (auto &matrix: matrices) {
+        json matrixJson = json::array();
+        for (auto &row: matrix) {
+            json rowJson = json::array();
+            for (int &elem: row) {
+                rowJson.push_back(elem);
+            }
+            matrixJson.push_back(rowJson);
+        }
+        data.push_back(matrixJson);
+    }
+    return data.dump();
 }
 
 std::string promptLongTask() {
@@ -42,7 +66,6 @@ std::string promptLongTask() {
     std::cout << "> ";
     int delay;
     std::cin >> delay;
-
 }
 
 void *receiverThread(void *arg) {
@@ -65,15 +88,18 @@ void *senderThread(void *arg) {
         std::cin >> taskNum;
         std::string requestFunc;
         std::string requestParams;
+        int cores = 1;
 
         switch (taskNum) {
             case 1:
-                requestFunc = "matrixMult";
-                requestParams = promptMatrixMultTask();
+                requestParams = promptSimpleMathTask();
                 break;
 
             case 2:
-                requestFunc = "longTask";
+                requestParams = promptMatrixDeterminantTask();
+                break;
+
+            case 3:
                 requestParams = promptLongTask();
                 break;
 
@@ -84,6 +110,9 @@ void *senderThread(void *arg) {
                 std::cout << "Unknown task number" << std::endl;
                 break;
         }
+
+        TaskRequest tr{taskNum, requestParams, cores};
+        client->sendTask(tr);
     }
     return nullptr;
 }

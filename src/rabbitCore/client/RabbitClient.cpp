@@ -31,6 +31,8 @@ void RabbitClient::init() {
     client.startListen();
 
     connection = client.connect(server_endpoint);
+
+    // TODO: Register
 }
 
 void RabbitClient::receiveResutls() {

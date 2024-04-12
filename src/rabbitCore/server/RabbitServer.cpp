@@ -41,21 +41,28 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
         // process request
         std::string action = request["action"];
         if (action == "register") {
+            bool registered = false;
             // register
             std::string type = request["type"];
             if (type == "worker") {
+                // TODO:
                 // register worker
                 // create worker session
-
+                // добавляем воркера в бд
+                // registered = userDb.addWorker(request["userID"])
+                // try   {
+                // processWorker(connection);
+                // }
+                // теперь можно просто удалить инфу о юзере
+                // userdb.remove(userID)
+                // connection->kill();
+                // выход
             } else if (type == "client") {
-                // register client
-                // create client session
-
+                // TODO из пункта выше
             }
         }
     }
 
-    // TODO: тут нужны умные указатели по идее
     delete receiveMessage;
     delete connection;
 }
@@ -95,33 +102,41 @@ bool RabbitServer::validateRequest(json request) {
     return true;
 }
 
-//void RabbitServer::clientProccess(STIP::Connection *connection) {
+void RabbitServer::processWorker(STIP::Connection *connection) {
 //    std::cout << "Connection accepted\n\n" << std::endl;
-//
-//    auto receiveMessage = connection->receiveMessage();
-//    json request;
-//
-//    // validate request
-//    if (validateRequest(request)) {
-//        // process request
-//        std::string action = request["action"];
-//        if (action == "register") {
-//            // register
-//            std::string type = request["type"];
-//            if (type == "worker") {
-//                // register worker
-//                // create worker session
-//
-//            } else if (type == "client") {
-//                // register client
-//                // create client session
-//
-//            }
-//        }
-//    }
-//    delete receiveMessage;
-//    delete connection;
-//}
+
+    for (;;) {
+        auto receiveMessage = connection->receiveMessage();
+        json request = receiveMessage->getDataAsString();
+
+        // TODO:
+        // получили сообщение об усешно вып задаче
+        // обновляем статус задачи
+        // обновляем статус воркера (ядра)
+        // определяем кто ждет результат этой задачи
+        // отправляем ему htpekmnfn
+    }
+    delete receiveMessage;
+    delete connection;
+}
+
+void RabbitServer::processClient(STIP::Connection *connection) {
+//    std::cout << "Connection accepted\n\n" << std::endl;
+
+    for (;;) {
+        auto receiveMessage = connection->receiveMessage();
+        json request = receiveMessage->getDataAsString();
+
+        // TODO:
+        // получили реквест на задачу
+        // кладем ее в бд
+        // ищем воркера который сможет ее выполнить
+        // отправляем ему задачу
+        // обновляем ее статус
+    }
+    delete receiveMessage;
+    delete connection;
+}
 
 /*
  * Process connection

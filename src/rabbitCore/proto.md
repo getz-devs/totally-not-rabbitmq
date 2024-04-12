@@ -27,3 +27,17 @@ matrix determinant
   [[1, 2], [3, 4]]
 ]
 ```
+
+Actions:
+- 0 - auth
+- 1 - task request
+- 2 - task result
+
+```json
+{
+  "action": 1,
+  "data": { // data related only to this action
+    "field": "value"
+}
+}
+```

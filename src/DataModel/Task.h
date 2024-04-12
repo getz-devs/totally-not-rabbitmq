@@ -10,6 +10,8 @@
 
 using json = nlohmann::json;
 
+// TODO: вероятно он не нужен (оболочка в json)
+
 struct Task {
     int id;
     int func;

@@ -111,7 +111,7 @@ void *senderThread(void *arg) {
                 break;
         }
 
-        TaskRequest tr{taskNum, requestParams, cores};
+        TaskRequest tr{0, taskNum, requestParams, cores};
         client->sendTask(tr);
     }
     return nullptr;

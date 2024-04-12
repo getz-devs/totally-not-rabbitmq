@@ -51,8 +51,8 @@ private:
     int determinant(std::vector<std::vector<int>> matrix, int n);
     static void doWait(int seconds);
 
-    void simpleMathHandler(json data, int taskCores);
-    void determinantHandler(json data, int taskCores);
+    void simpleMathHandler(int id, json data, int taskCores);
+    void determinantHandler(int id, json data, int taskCores);
 
 };
 

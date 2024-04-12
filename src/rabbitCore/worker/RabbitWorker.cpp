@@ -44,13 +44,14 @@ void RabbitWorker::startPolling() {
         json data = request["data"];
         int taskCores = request["cores"];
         int func = request["func"];
+        int id = request["id"];
 
         switch (func) {
             case 1: // simpleMath
-                simpleMathHandler(data, taskCores);
+                simpleMathHandler(id, data, taskCores);
                 break;
             case 2: // determinant
-                determinantHandler(data, taskCores);
+                determinantHandler(id, data, taskCores);
                 break;
             default:
                 break;
@@ -127,20 +128,20 @@ int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
 //    connection->sendMessage(response.dump());
 //}
 
-void RabbitWorker::simpleMathHandler(json data, int taskCores) {
+void RabbitWorker::simpleMathHandler(int id, json data, int taskCores) {
     int a = data["a"];
     int b = data["b"];
     int result = simpleMath(a, b);
 
     json jResult = json::object();
     jResult["result"] = result;
-    TaskResult taskResult{0, jResult.dump(), 1};
+    TaskResult taskResult{id, jResult.dump(), 1};
 
     json response = taskResult;
     connection->sendMessage(response.dump());
 }
 
-void RabbitWorker::determinantHandler(json data, int taskCores) {
+void RabbitWorker::determinantHandler(int id, json data, int taskCores) {
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
 
@@ -165,7 +166,7 @@ void RabbitWorker::determinantHandler(json data, int taskCores) {
     for (int & result : results) {
         jResults.push_back(result);
     }
-    TaskResult taskResult{0, jResults.dump(), 1};
+    TaskResult taskResult{id, jResults.dump(), 1};
 
     json response = taskResult;
     connection->sendMessage(response.dump());

@@ -8,7 +8,7 @@
 #include <boost/asio.hpp>
 #include <sqlite_orm/sqlite_orm.h>
 #include "protocol/Connection.h"
-#include "services/TaskService.h"
+#include "services/TaskService/TaskService.h"
 #include <nlohmann/json.hpp>
 
 using boost::asio::ip::udp;

@@ -40,7 +40,7 @@ add_executable(rabbitServerL3cmd
         src/rabbitCore/server/RabbitServer.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
-        src/services/TaskService.cpp
+        src/services/TaskService/TaskService.cpp
 )
 
 add_executable(rabbitClientL3cmd

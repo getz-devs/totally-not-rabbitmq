@@ -13,7 +13,7 @@
 using json = nlohmann::json;
 
 struct TaskResult {
-    int id;
+    std::string id;
     std::string data;
     int status;
 };

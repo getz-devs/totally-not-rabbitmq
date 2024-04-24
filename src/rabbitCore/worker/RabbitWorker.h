@@ -21,6 +21,7 @@ using json = nlohmann::json;
 class RabbitWorker;
 
 typedef void (RabbitWorker::*func_type)(int, json, int);
+
 typedef std::map<std::string, func_type> func_map_type;
 
 class RabbitWorker {
@@ -56,11 +57,15 @@ private:
     // functions (demo for now)
 
     int simpleMath(int a, int b);
+
     int determinant(std::vector<std::vector<int>> matrix, int n);
+
     static void doWait(int seconds);
 
     void simpleMathHandler(int id, json data, int taskCores);
+
     void determinantHandler(int id, json data, int taskCores);
+
     func_map_type mapping;
 
 };

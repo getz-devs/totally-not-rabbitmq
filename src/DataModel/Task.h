@@ -14,7 +14,7 @@ using json = nlohmann::json;
 
 struct Task {
     int id;
-    int func;
+    std::string func;
     std::string input;
     std::string output;
     int cores;

@@ -16,6 +16,12 @@ using boost::asio::ip::udp;
 using namespace sqlite_orm;
 using json = nlohmann::json;
 
+class RabbitServer;
+
+typedef void (RabbitServer::*func_type)(int, json, int);
+
+typedef std::map<std::string, func_type> func_map_type;
+
 class RabbitServer {
 public:
     RabbitServer(int port);
@@ -35,12 +41,13 @@ private:
     boost::asio::io_context io_context;
     udp::socket *server_socket;
 
-    //
     TaskService taskService;
     UserDBService userDBService;
 
-//        json parseMessage(std::string message);
+    // json parseMessage(std::string message);
     static bool validateRequest(json request);
+
+    func_map_type handlers;
 };
 
 

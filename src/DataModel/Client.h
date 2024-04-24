@@ -6,11 +6,22 @@
 #define RABBIT_USER_H
 
 #include <string>
+#include <nlohmann/json.hpp>
 #include "protocol/Connection.h"
+
+using json = nlohmann::json;
 
 struct Client {
     std::string id;
     STIP::Connection *connection;
 };
+
+void to_json(json &j, const Client &c) {
+    j = json{{"id", c.id}};
+}
+
+void from_json(const json &j, Client &c) {
+    j.at("id").get_to(c.id);
+}
 
 #endif //RABBIT_USER_H

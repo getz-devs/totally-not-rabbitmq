@@ -69,36 +69,39 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 
 bool RabbitServer::validateRequest(json request) {
     // Action is required
-    std::string action;
-    try {
-        action = request["action"];
-    } catch (json::exception &e) {
-        std::cerr << "Error parsing action: " << e.what() << std::endl;
-        return false;
-    }
 
-    if (action == "register") {
-        // Type is required for register action
-        std::string type;
-        try {
-            type = request["type"];
+    // TODO : полностью переписать
 
-        } catch (json::exception &e) {
-            std::cerr << "Error parsing type: " << e.what() << std::endl;
-            return false;
-        }
-    } else if (action == "send") {
-        std::string queue;
-        try {
-            queue = request["queue"];
-        } catch (json::exception &e) {
-            std::cerr << "Error parsing queue: " << e.what() << std::endl;
-            return false;
-        }
-    } else {
-        std::cerr << "Unknown action: " << action << std::endl;
-        return false;
-    }
+//    std::string action;
+//    try {
+//        action = request["action"];
+//    } catch (json::exception &e) {
+//        std::cerr << "Error parsing action: " << e.what() << std::endl;
+//        return false;
+//    }
+//
+//    if (action == "register") {
+//        // Type is required for register action
+//        std::string type;
+//        try {
+//            type = request["type"];
+//
+//        } catch (json::exception &e) {
+//            std::cerr << "Error parsing type: " << e.what() << std::endl;
+//            return false;
+//        }
+//    } else if (action == "send") {
+//        std::string queue;
+//        try {
+//            queue = request["queue"];
+//        } catch (json::exception &e) {
+//            std::cerr << "Error parsing queue: " << e.what() << std::endl;
+//            return false;
+//        }
+//    } else {
+//        std::cerr << "Unknown action: " << action << std::endl;
+//        return false;
+//    }
     return true;
 }
 

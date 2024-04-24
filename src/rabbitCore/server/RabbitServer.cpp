@@ -4,6 +4,7 @@
 #include "protocol/STIP.h"
 #include "server/STIPServer.h"
 #include "protocol/Connection.h"
+#include "DataModel/Message.h"
 #include "RabbitServer.h"
 
 using namespace STIP;
@@ -34,82 +35,77 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
     std::cout << "Connection accepted\n\n" << std::endl;
 
     auto receiveMessage = connection->receiveMessage();
-    json request;
-
-    // validate request
-    if (validateRequest(request)) {
-        // process request
-        std::string action = request["action"];
-        if (action == "register") {
-            bool registered = false;
-            // register
-            std::string type = request["type"];
-            if (type == "worker") {
-                // TODO:
-                // register worker
-                // create worker session
-                // добавляем воркера в бд
-                // registered = userDb.addWorker(request["userID"])
-                // try   {
-                // processWorker(connection);
-                // }
-                // теперь можно просто удалить инфу о юзере
-                // userdb.remove(userID)
-                // connection->kill();
-                // выход
-            } else if (type == "client") {
-                // TODO из пункта выше
-            }
-        }
+    json request = receiveMessage->getDataAsString();
+    Message message;
+    json data;
+    try {
+        message = request.template get<Message>();
+        data = message.data;
+    } catch (json::exception &e) {
+        std::cerr << "Error parsing message: " << e.what() << std::endl;
+        return;
     }
 
+    switch (message.action) {
+        case MessageType::RegisterClient: {
+            Client client;
+            try {
+                client = data.template get<Client>();
+                client.connection = connection;
+            } catch (json::exception &e) {
+                std::cerr << "Error parsing client: " << e.what() << std::endl;
+                break;
+            }
+
+            userDBService.addClient(client);
+
+            try {
+                processClient(client);
+            } catch (std::exception &e) {
+                std::cerr << "Error processing client: " << e.what() << std::endl;
+            }
+
+            userDBService.removeClient(client);
+            break;
+        }
+
+        case MessageType::RegisterWorker: {
+            Worker worker;
+            try {
+                worker = data.template get<Worker>();
+                worker.connection = connection;
+            } catch (json::exception &e) {
+                std::cerr << "Error parsing worker: " << e.what() << std::endl;
+                break;
+            }
+
+            userDBService.addWorker(worker);
+
+            try {
+                processWorker(worker);
+            } catch (std::exception &e) {
+                std::cerr << "Error processing worker: " << e.what() << std::endl;
+            }
+
+            userDBService.removeWorker(worker);
+            break;
+        }
+
+        default:
+            std::cerr << "Unknown action: " << message.action << std::endl;
+            break;
+    }
+
+//    connection->kill();
     delete receiveMessage;
     delete connection;
 }
 
-bool RabbitServer::validateRequest(json request) {
-    // Action is required
-
-    // TODO : полностью переписать
-
-//    std::string action;
-//    try {
-//        action = request["action"];
-//    } catch (json::exception &e) {
-//        std::cerr << "Error parsing action: " << e.what() << std::endl;
-//        return false;
-//    }
-//
-//    if (action == "register") {
-//        // Type is required for register action
-//        std::string type;
-//        try {
-//            type = request["type"];
-//
-//        } catch (json::exception &e) {
-//            std::cerr << "Error parsing type: " << e.what() << std::endl;
-//            return false;
-//        }
-//    } else if (action == "send") {
-//        std::string queue;
-//        try {
-//            queue = request["queue"];
-//        } catch (json::exception &e) {
-//            std::cerr << "Error parsing queue: " << e.what() << std::endl;
-//            return false;
-//        }
-//    } else {
-//        std::cerr << "Unknown action: " << action << std::endl;
-//        return false;
-//    }
-    return true;
-}
-
-void RabbitServer::processWorker(STIP::Connection *connection) {
+void RabbitServer::processWorker(Worker &worker) {
 //    std::cout << "Connection accepted\n\n" << std::endl;
 
     for (;;) {
-        auto receiveMessage = connection->receiveMessage();
+        auto receiveMessage = worker.connection->receiveMessage();
         json request = receiveMessage->getDataAsString();
 
         // TODO:
@@ -117,17 +113,17 @@ void RabbitServer::processWorker(STIP::Connection *connection) {
         // обновляем статус задачи
         // обновляем статус воркера (ядра)
         // определяем кто ждет результат этой задачи
-        // отправляем ему htpekmnfn
+        // отправляем ему результат
     }
     delete receiveMessage;
     delete connection;
 }
 
-void RabbitServer::processClient(STIP::Connection *connection) {
+void RabbitServer::processClient(Client &client) {
 //    std::cout << "Connection accepted\n\n" << std::endl;
 
     for (;;) {
-        auto receiveMessage = connection->receiveMessage();
+        auto receiveMessage = client.connection->receiveMessage();
         json request = receiveMessage->getDataAsString();
 
         // TODO:

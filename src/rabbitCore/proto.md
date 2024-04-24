@@ -41,3 +41,16 @@ Actions:
 }
 }
 ```
+
+## Register
+
+```json
+{
+  "action": "register",
+  "data": {
+    "hash_id": "hash_id",
+    "type": "worker",
+    "queue": "calcMatrixMult"
+  }
+}
+```

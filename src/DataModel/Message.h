@@ -12,21 +12,19 @@ using json = nlohmann::json;
 
 // TODO: обернуть все нижестоящие объекты в этот высооуровневый класс
 
-enum class MessageType : int {
-    Register = 0, TaskRequest = 1, TaskResult = 2
-};
-
 // example enum type declaration
-enum TaskState {
-    Register,
+enum MessageType {
+    RegisterClient,
+    RegisterWorker,
     TaskRequest,
     TaskResult,
     Invalid = -1
 };
 
 // map TaskState values to JSON as strings
-NLOHMANN_JSON_SERIALIZE_ENUM(TaskState, {
-    { Register, "register" },
+NLOHMANN_JSON_SERIALIZE_ENUM(MessageType, {
+    { RegisterClient, "registerClient" },
+    { RegisterWorker, "registerWorker" },
     { TaskRequest, "request" },
     { TaskResult, "result" },
     { Invalid, nullptr },

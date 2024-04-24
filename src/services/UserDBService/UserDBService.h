@@ -15,8 +15,11 @@ public:
         workers = std::vector<Worker>();
     };
 
-    void addClient(const Client& client) { clients.push_back(client); };
-    void addWorker(const Worker& worker) { workers.push_back(worker); };
+    void addClient(const Client& client);
+    void addWorker(const Worker& worker);
+
+    void removeClient(const Client& client);
+    void removeWorker(const Worker& worker);
 
     Worker findMostFreeWorker();
 

@@ -6,10 +6,11 @@
 #define RABBIT_TASKSERVICE_H
 
 #include "DataModel/Task.h"
-#include <sqlite_orm/sqlite_orm.h>
+//#include <sqlite_orm/sqlite_orm.h>
 
-using namespace sqlite_orm;
+//using namespace sqlite_orm; -- remone DB for now
 
+/*
 auto storage = make_storage("db.sqlite",
                             make_table("tasks",
                                        make_column("id", &Task::id, primary_key().autoincrement()),
@@ -21,6 +22,7 @@ auto storage = make_storage("db.sqlite",
                                        make_column("client_hash_id", &Task::client_hash_id)
                             )
 );
+*/
 
 class TaskService {
 public:

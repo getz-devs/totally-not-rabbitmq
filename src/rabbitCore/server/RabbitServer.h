@@ -38,9 +38,9 @@ private:
     TaskService taskService;
     UserDBService userDBService;
 
-    static static void processWorker(Worker &worker);
+    static void processWorker(Worker &worker);
 
-    static static void processClient(Client &client);
+    static void processClient(Client &client);
 };
 
 

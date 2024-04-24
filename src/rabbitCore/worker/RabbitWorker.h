@@ -30,11 +30,6 @@ public:
 
     void init();
 
-    // - нужно?
-    //   void startPolling();
-    //   void processConnection(STIP::Connection *connection);
-    //
-
     void startPolling();
 
     ~RabbitWorker() {
@@ -49,10 +44,6 @@ private:
 
     boost::asio::io_context io_context;
     udp::socket *server_socket{};
-
-    // json parseMessage(std::string message);
-    static bool validateRequest(json request);
-
 
     // functions (demo for now)
 

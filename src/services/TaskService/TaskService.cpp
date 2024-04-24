@@ -6,7 +6,7 @@
 
 
 TaskService::TaskService() {
-    storage.sync_schema();
+//    storage.sync_schema(); -- remove DB for now
 }
 
 void TaskService::addTask() {

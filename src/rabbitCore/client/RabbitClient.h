@@ -18,7 +18,9 @@ public:
     RabbitClient(std::string host, int port);
 
     void init();
+
     void receiveResutls();
+
     void sendTask(TaskRequest t);
 
     ~RabbitClient() {

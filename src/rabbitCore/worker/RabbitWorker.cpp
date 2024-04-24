@@ -92,7 +92,7 @@ int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
                 }
                 subi++;
             }
-            det = det + (pow(-1, x) * matrix[0][x] * determinant( submatrix, n - 1 ));
+            det = det + (pow(-1, x) * matrix[0][x] * determinant(submatrix, n - 1));
         }
     }
     return det;
@@ -154,11 +154,11 @@ void RabbitWorker::determinantHandler(int id, json data, int taskCores) {
 
     for (int i = 0; i < matrices.size(); ++i) {
         threads.emplace_back([this, &matrices, &results, i] {
-                results[i] = this->determinant(matrices[i], matrices[i].size());
+            results[i] = this->determinant(matrices[i], matrices[i].size());
         });
 
         if (threads.size() == taskCores || i == matrices.size() - 1) {
-            for (auto &t : threads) {
+            for (auto &t: threads) {
                 t.join();
             }
             threads.clear();
@@ -166,7 +166,7 @@ void RabbitWorker::determinantHandler(int id, json data, int taskCores) {
     }
 
     json jResults = json::array();
-    for (int & result : results) {
+    for (int &result: results) {
         jResults.push_back(result);
     }
     TaskResult taskResult{id, jResults.dump(), 1};

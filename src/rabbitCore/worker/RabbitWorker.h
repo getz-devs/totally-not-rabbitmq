@@ -11,9 +11,17 @@
 #include <adoint_backcompat.h>
 #include <vector>
 #include <iostream>
+#include <string>
+#include <unordered_map>
+#include <functional>
 
 using boost::asio::ip::udp;
 using json = nlohmann::json;
+
+class RabbitWorker;
+
+typedef void (RabbitWorker::*func_type)(int, json, int);
+typedef std::map<std::string, func_type> func_map_type;
 
 class RabbitWorker {
 public:
@@ -53,6 +61,7 @@ private:
 
     void simpleMathHandler(int id, json data, int taskCores);
     void determinantHandler(int id, json data, int taskCores);
+    func_map_type mapping;
 
 };
 

@@ -13,6 +13,9 @@
 
 using boost::asio::ip::udp;
 
+//typedef void (RabbitWorker::*func_type)(void);
+//typedef std::map<std::string, func_type> func_map_type;
+
 RabbitWorker::RabbitWorker(std::string host, int port, int cores) {
     this->host = std::move(host);
     this->port = port;
@@ -33,30 +36,28 @@ void RabbitWorker::init() {
 
     connection = client.connect(server_endpoint);
 
+    mapping["simpleMath"] = &RabbitWorker::simpleMathHandler;
+    mapping["determinant"] = &RabbitWorker::determinantHandler;
+
+
     // TODO: Register
 }
 
-void RabbitWorker::startPolling() {
-//    STIPServer server(*server_socket);
-//    STIP::ReceiveMessageSession *received = connection->receiveMessage();
 
+void RabbitWorker::startPolling() {
     for (;;) {
         STIP::ReceiveMessageSession *received = connection->receiveMessage();
         json request = received->getDataAsString();
         json data = request["data"];
         int taskCores = request["cores"];
-        int func = request["func"];
+//        int func = request["func"];
+        std::string func = request["func"];
         int id = request["id"];
 
-        switch (func) {
-            case 1: // simpleMath
-                simpleMathHandler(id, data, taskCores);
-                break;
-            case 2: // determinant
-                determinantHandler(id, data, taskCores);
-                break;
-            default:
-                break;
+        if (mapping.find(func) != mapping.end()) {
+            (this->*mapping[func])(id, data, taskCores);
+        } else {
+            std::cout << "Function not found" << std::endl;
         }
     }
 }

@@ -40,3 +40,8 @@ Worker UserDBService::findMostFreeWorker() {
     }
     return mostFreeWorker;
 }
+
+Worker UserDBService::fingByID(const std::string &id) {
+    // TODO: implement
+    return Worker();
+}

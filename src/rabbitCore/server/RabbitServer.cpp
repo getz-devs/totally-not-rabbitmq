@@ -102,43 +102,83 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 }
 
 void RabbitServer::processWorker(Worker &worker) {
-//    std::cout << "Connection accepted\n\n" << std::endl;
-
     for (;;) {
         auto receiveMessage = worker.connection->receiveMessage();
         json request = receiveMessage->getDataAsString();
+        Message message;
+        json data;
+        try {
+            message = request.template get<Message>();
+            data = message.data;
+        } catch (json::exception &e) {
+            std::cerr << "Error parsing message: " << e.what() << std::endl;
+            continue;
+        }
 
-        // TODO:
-        // получили сообщение об усешно вып задаче
-        // обновляем статус задачи
-        // обновляем статус воркера (ядра)
-        // определяем кто ждет результат этой задачи
-        // отправляем ему результат
+        switch (message.action) {
+            case MessageType::TaskResult: {
+                Task task;
+                try {
+                    task = data.template get<Task>();
+                } catch (json::exception &e) {
+                    std::cerr << "Error parsing task: " << e.what() << std::endl;
+                    break;
+                }
+
+                // TODO:
+                // update task status
+                // update worker status
+                // find client who wait for this task
+                // send task result to client
+                // update task status
+
+                break;
+            }
+
+            default:
+                std::cerr << "Unknown action: " << message.action << std::endl;
+                break;
+        }
     }
-    delete receiveMessage;
-    delete connection;
 }
 
 void RabbitServer::processClient(Client &client) {
-//    std::cout << "Connection accepted\n\n" << std::endl;
-
     for (;;) {
         auto receiveMessage = client.connection->receiveMessage();
         json request = receiveMessage->getDataAsString();
+        Message message;
+        json data;
+        try {
+            message = request.template get<Message>();
+            data = message.data;
+        } catch (json::exception &e) {
+            std::cerr << "Error parsing message: " << e.what() << std::endl;
+            continue;
+        }
 
-        // TODO:
-        // получили реквест на задачу
-        // кладем ее в бд
-        // ищем воркера который сможет ее выполнить
-        // отправляем ему задачу
-        // обновляем ее статус
+        switch (message.action) {
+            case MessageType::TaskRequest: {
+                Task task;
+                try {
+                    task = data.template get<Task>();
+                } catch (json::exception &e) {
+                    std::cerr << "Error parsing task: " << e.what() << std::endl;
+                    break;
+                }
+
+                // TODO:
+                // add task to task DB
+                // update task status
+                // find free worker
+                // send task to worker
+                // update task status
+                break;
+            }
+
+            default:
+                std::cerr << "Unknown action: " << message.action << std::endl;
+                break;
+        }
     }
-    delete receiveMessage;
-    delete connection;
 }
-
-/*
- * Process connection
- * Занимается обработкой первичного соединения. Позже вызывает отдельно методы для обработки клиентов и воркеров
- */
 

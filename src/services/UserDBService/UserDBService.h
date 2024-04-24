@@ -21,6 +21,9 @@ public:
     void removeClient(const Client& client);
     void removeWorker(const Worker& worker);
 
+    void updateWorker(const Worker& worker);
+
+    Worker fingByID(const std::string& id);
     Worker findMostFreeWorker();
 
 

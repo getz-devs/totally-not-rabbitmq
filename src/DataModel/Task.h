@@ -10,7 +10,23 @@
 
 using json = nlohmann::json;
 
-// TODO: вероятно он не нужен (оболочка в json)
+// example enum type declaration
+enum TaskStatus {
+    Created,
+    Queued,
+    SentToWorker,
+    Ready,
+    Failed,
+};
+
+// map TaskState values to JSON as strings
+NLOHMANN_JSON_SERIALIZE_ENUM(TaskStatus, {
+    { Created, "created" },
+    { Queued, "queued" },
+    { SentToWorker, "sentToWorker" },
+    { Ready, "ready" },
+    { Failed, "failed" },
+})
 
 struct Task {
     int id;
@@ -18,7 +34,7 @@ struct Task {
     std::string input;
     std::string output;
     int cores;
-    int status;
+    TaskStatus status;
     std::string worker_hash_id;
     std::string client_hash_id;
 };

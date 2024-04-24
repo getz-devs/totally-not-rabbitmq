@@ -8,8 +8,6 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-// TODO: обернуть в Message
-
 using json = nlohmann::json;
 
 struct TaskResult {

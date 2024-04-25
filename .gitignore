@@ -32,6 +32,6 @@
 *.app
 
 # Debug files
-cmake-build-debug
+cmake-build-*
 .idea
 build

@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 //#include <gmock/gmock.h>
+#include "protocol/errors/STIP_errors.h"
 
 using namespace std;
 using namespace STIP;
@@ -131,6 +132,38 @@ TEST(Protocol, MessageTransfering) {
     client.stopListen();
     serverThread.join();
 }
+
+TEST(Protocol, CatchException) {
+    // subthread for server
+
+    std::string test_string = "Hello, I'm Ilya";
+
+    boost::asio::io_context io_context_server;
+
+    udp::socket socket_server(io_context_server, udp::endpoint(udp::v4(), 12224));
+    STIPServer server(socket_server);
+
+
+    // client thread
+
+    boost::asio::io_context io_context;
+
+    udp::resolver resolver(io_context);
+    udp::endpoint server_endpoint = *resolver.resolve(udp::v4(), "localhost", "12224");
+
+    udp::socket socket(io_context);
+    socket.open(udp::v4());
+
+    STIPClient client(socket);
+    client.startListen();
+
+    EXPECT_THROW(static_cast<void>(client.connect(server_endpoint)), STIP::errors::STIPTimeoutException);
+
+    socket_server.close();
+    client.stopListen();
+//    serverThread.join();
+}
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

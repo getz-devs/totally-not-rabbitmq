@@ -5,6 +5,7 @@
 #ifndef RABBIT_STIP_BASE_H
 #define RABBIT_STIP_BASE_H
 
+#include "Commands.h"
 
 #include <iostream>
 #include <boost/asio.hpp>
@@ -14,7 +15,7 @@ namespace STIP {
     static const int MAX_UDP_SIZE = 65507 - 8 - 20 - 8;
 
     struct STIP_HEADER {
-        int command;
+        Command command;
         uint32_t session_id;
         int size;
         uint32_t packet_id;

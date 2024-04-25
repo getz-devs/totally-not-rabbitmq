@@ -18,6 +18,8 @@ namespace STIP {
 
         void stopListen();
 
+        Connection *connect(udp::endpoint &targetEndpoint, std::chrono::milliseconds timeout);
+
         Connection *connect(udp::endpoint &targetEndpoint);
 
     private:

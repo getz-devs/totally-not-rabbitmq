@@ -52,7 +52,7 @@ void RabbitWorker::startPolling() {
         int taskCores = request["cores"];
 //        int func = request["func"];
         std::string func = request["func"];
-        int id = request["id"];
+        std::string id = request["id"];
 
         if (mapping.find(func) != mapping.end()) {
             (this->*mapping[func])(id, data, taskCores);
@@ -131,7 +131,7 @@ int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
 //    connection->sendMessage(response.dump());
 //}
 
-void RabbitWorker::simpleMathHandler(int id, json data, int taskCores) {
+void RabbitWorker::simpleMathHandler(std::string id, json data, int taskCores) {
     int a = data["a"];
     int b = data["b"];
     int result = simpleMath(a, b);
@@ -144,7 +144,7 @@ void RabbitWorker::simpleMathHandler(int id, json data, int taskCores) {
     connection->sendMessage(response.dump());
 }
 
-void RabbitWorker::determinantHandler(int id, json data, int taskCores) {
+void RabbitWorker::determinantHandler(std::string id, json data, int taskCores) {
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
 

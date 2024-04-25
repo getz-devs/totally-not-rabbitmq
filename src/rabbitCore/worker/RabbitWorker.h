@@ -20,7 +20,7 @@ using json = nlohmann::json;
 
 class RabbitWorker;
 
-typedef void (RabbitWorker::*func_type)(int, json, int);
+typedef void (RabbitWorker::*func_type)(std::string, json, int);
 
 typedef std::map<std::string, func_type> func_map_type;
 
@@ -53,9 +53,9 @@ private:
 
     static void doWait(int seconds);
 
-    void simpleMathHandler(int id, json data, int taskCores);
+    void simpleMathHandler(std::string id, json data, int taskCores);
 
-    void determinantHandler(int id, json data, int taskCores);
+    void determinantHandler(std::string id, json data, int taskCores);
 
     func_map_type mapping;
 

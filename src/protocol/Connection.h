@@ -15,7 +15,7 @@
 #include "protocol/Connection.h"
 #include "protocol/STIP.h"
 #include "protocol/Session.h"
-
+#include "protocol/SessionKiller.h"
 
 using boost::asio::ip::udp;
 
@@ -34,7 +34,9 @@ namespace STIP {
         udp::socket *socket = nullptr;
         char connectionStatus = 100;
         std::queue<STIP_PACKET> packetQueue;
+
         SessionManager *sessionManager = nullptr;
+        SessionKiller sessionKiller;
         bool isRunning = false;
 
         /// \brief Обработка пакетов
@@ -42,6 +44,9 @@ namespace STIP {
         /// Обработка пакетов из очереди
         ///
         void processThread();
+      
+        int countPacketWaiting = 0;
+        bool cancelPacketWaitingFlag = false;
 
         // message
         std::queue<ReceiveMessageSession *> messageQueue;
@@ -116,6 +121,8 @@ namespace STIP {
         ///
         /// \param status - статус соединения
         void setConnectionStatus(char status);
+      
+        void cancelPacketWaiting();
 
         /// \brief Запуск обработки пакетов
         ///

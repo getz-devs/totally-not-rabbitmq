@@ -28,17 +28,17 @@ namespace STIP {
             STIP_PACKET response[1] = {};
             Connection *connection = nullptr;
             switch (packet[0].header.command) {
-                case 100: // SYN
+                case Command::CONNECTION_SYN : // SYN
                     connection = new Connection(remote_endpoint, socket);
                     this->connectionManager->addConnection(remote_endpoint, connection);
-                    response[0].header.command = 101; // SYN-ACK
+                    response[0].header.command = Command::CONNECTION_SYN_ACK; // SYN-ACK
                     response[0].header.size = sizeof(int); // We have to send only command
                     this->socket->send_to(boost::asio::buffer(response, response[0].header.size), remote_endpoint);
                     std::cout << "SYN-ACK sent" << std::endl;
                     break;
 
                     Connection *connection_exist;
-                case 102: // ACK
+                case Command::CONNECTION_ACK: // ACK
                     connection_exist = this->connectionManager->getConnection(remote_endpoint);
                     if (connection_exist == nullptr) {
                         break;
@@ -46,6 +46,7 @@ namespace STIP {
                     connection_exist->setConnectionStatus(102);
                     connection_exist->startProcessing();
                     return connection_exist;
+
                 default:
                     this->connectionManager->accept(remote_endpoint, packet[0]);
                     break;

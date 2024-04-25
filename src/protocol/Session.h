@@ -90,8 +90,22 @@ namespace STIP {
     };
 
 
-
 // ------------------------------------------------ SendMessageSession.h ------------------------------------------------
+    // create enum for SendMessageStatuses;
+    enum SendMessageStatuses : int {
+//        CANCELED = 404,
+
+        INIT = 0,
+        INIT_REQUEST_SENT = 1,
+        INIT_RESPONSE_SUCCESS = 2,
+        INIT_RESPONSE_FAILURE = 3,
+
+        DATA_REQEUST_SENT = 4,
+        DATA_RESPONSE_RESEND = 5,
+        DATA_RESPONSE_SUCCESS = 6,
+        DATA_RESPONSE_FAILURE = 7,
+    };
+
 
     class SendMessageSession : public Session {
     public:
@@ -106,7 +120,7 @@ namespace STIP {
         /// \param endpoint - указатель на конечную точку
         explicit SendMessageSession(uint32_t id, void *data, uint32_t size, udp::socket *socket,
                                     udp::endpoint &endpoint) {
-            status = -1;
+            status = SendMessageStatuses::INIT; // -1
             this->id = id;
             this->data = data;
             this->size = size;
@@ -148,14 +162,17 @@ namespace STIP {
         /// \return возвращает статус 5
         bool waitApproval();
 
+        void cancel();
+
     private:
         std::mutex mtx;
         std::condition_variable cv;
+        bool _cancaled = false; // TODO remove this, bcs it could be in status
 
         void *data = nullptr;
         size_t size = 0;
         size_t packet_counts = 0;
-        int status = -1;
+        SendMessageStatuses status = SendMessageStatuses::INIT;
 
         udp::socket *socket = nullptr;
         udp::endpoint endpoint;
@@ -223,6 +240,8 @@ namespace STIP {
 
         udp::socket *socket = nullptr;
         udp::endpoint endpoint;
+
+        uint32_t countUnreceivedParts() const;
     };
 
 
@@ -254,6 +273,8 @@ namespace STIP {
         /// \param id - идентификатор сессии
         /// \return возвращает сессию
         Session *getSession(uint32_t id);
+      
+        void deleteSessionById(uint32_t id);
 
         /// \brief Генерация идентификатора сессии
         ///

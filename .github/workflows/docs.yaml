@@ -86,6 +86,10 @@ jobs:
           sudo chmod +x /hdoc
           sudo /hdoc --verbose 
 
+      - name: Copy medias
+        run: |
+          sudo cp -R media/ hdoc-output/
+
       - name: zip documentation
         run: |
           cd hdoc-output

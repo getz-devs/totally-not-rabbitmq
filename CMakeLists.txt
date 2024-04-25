@@ -68,6 +68,7 @@ add_executable(STIPTest
         tests/testStipSend.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
+        src/protocol/SessionKiller.cpp
 )
 
 # add sources dir

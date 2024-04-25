@@ -39,10 +39,14 @@ namespace STIP {
         SessionKiller sessionKiller;
         bool isRunning = false;
 
+        /// \brief Обработка пакетов
+        ///
+        /// Обработка пакетов из очереди
+        ///
+        void processThread();
+      
         int countPacketWaiting = 0;
         bool cancelPacketWaitingFlag = false;
-
-        void processThread();
 
         // message
         std::queue<ReceiveMessageSession *> messageQueue;
@@ -50,31 +54,95 @@ namespace STIP {
         std::condition_variable messageCv;
 
     public:
+        /// \brief Connection конструктор
+        ///
+        /// Конструктор класса Connection
+        ///
+        /// \param endpoint - адрес и порт подключения
+        /// \param socket
         Connection(udp::endpoint &endpoint, udp::socket *socket);
 
-        void sendData(void *data, size_t size);
-
+        /// \brief Отправка пинга(получение версии протокола)
+        ///
+        /// Создает сессию отправки и обработки пинга PingSession
+        ///(добавляет объект PingSession в SessionManager).
+        /// Отправляет пинг, ждет ответ, удаляет объект PingSession из SessionManager
+        ///
+        /// \return версия протокола
         uint32_t pingVersion();
 
+        /// \brief Отправка сообщения
+        ///
+        /// Создает сессию отправки сообщения SendMessageSession
+        ///(добавляет объект SendMessageSession в SessionManager).
+        /// Отправляет сообщение, ждет подтверждения, удаляет объект SendMessageSession из SessionManager
+        ///
+        /// \param data - указатель на данные
+        /// \param size - размер данных в байтах
+        /// \return результат отправки
         bool sendMessage(void *data, size_t size);
 
+        /// \brief Отправка сообщения
+        ///
+        /// Вызывает функцию sendMessage с параметрами message.c_str() и message.size()
+        ///
+        /// \param message - текстовое сообщение
+        /// \return результат отправки
         bool sendMessage(const std::string &message);
 
+        /// \brief Получение пакета из очереди
+        ///
+        /// Если очередь пуста, ждет пока не появится пакет.
+        /// Возвращает первый пакет из очереди и удаляет его из очереди
+        ///
+        /// \return
         ReceiveMessageSession *receiveMessage();
 
-
+        /// \brief Добавление пакета в очередь обработки
+        ///
+        /// Добавляет пакет в очередь для данного соединения.
+        /// После добавления пакета в очередь, уведомляет поток обработки пакетов
+        ///
+        /// \param
         void addPacket(const STIP_PACKET &packet);
 
+        /// \brief Получение пакета из очереди
+        ///
+        /// Если очередь пуста, ждет пока не появится пакет.
+        /// Возвращает пакет и результат выполнения
+        ///
+        /// \param result
+        /// \return packet
         STIP_PACKET getPacket(bool &result);
 
+        /// \brief Установка статуса соединения
+        ///
+        /// Устанавливает статус соединения
+        ///
+        /// \param status - статус соединения
+        void setConnectionStatus(char status);
+      
         void cancelPacketWaiting();
 
-        void setConnectionStatus(char status);
-
+        /// \brief Запуск обработки пакетов
+        ///
+        /// Запускает поток processThread,
+        /// помечает isRunning как true
+        ///
         void startProcessing();
 
+        /// \brief Остановка обработки пакетов
+        ///
+        /// Посылает сигнал на остановку,
+        /// помечает флаг isRunning как false
+        ///
         void stopProcessing();
 
+        /// \brief Connection деструктор
+        ///
+        /// Останавливает поток обработки пакетов,
+        /// удаляет объект SessionManager
+        ///
         ~Connection();
     };
 
@@ -87,19 +155,57 @@ namespace STIP {
         const udp::socket *socket;
 
     public:
+        /// \brief Конструктор ConnectionManager
+        ///
+        /// Устанавливает ссылку на сокет
+        ///
+        /// \param socket - ссылка на сокет
         explicit ConnectionManager(const udp::socket &socket);
 
-
+        /// \brief Обработка пакета
+        ///
+        /// Обработка пакетов из очереди.
+        /// Устанавливает соединение для пакета
+        ///
+        /// \param endpoint - адрес и порт подключения
+        /// \param packet - пакет
         void accept(const udp::endpoint &endpoint, const STIP_PACKET &packet);
 
+        /// \brief Добавление соединения
+        ///
+        /// Добавляет соединение в список соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
+        /// \param connection - указатель на соединение
         void addConnection(const udp::endpoint &endpoint, Connection *connection);
 
+        /// \brief Проверка наличия соединения
+        ///
+        /// Проверяет наличие соединения в списке соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
+        /// \return возвращает true если соединение есть в списке, иначе false
         bool check(const udp::endpoint &endpoint);
 
+        /// \brief Получение соединения
+        ///
+        /// Получение соединения из списка соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
+        /// \return возвращает указатель на соединение, если соединение есть в списке, иначе nullptr
         Connection *getConnection(const udp::endpoint &endpoint);
 
+        /// \brief Удаление соединения
+        ///
+        /// Удаляет соединение из списка соединений
+        ///
+        /// \param endpoint - адрес и порт соединения
         void remove(const udp::endpoint &endpoint);
 
+        /// \brief Деструктор ConnectionManager
+        ///
+        /// Удаляет все соединения
+        ///
         ~ConnectionManager();
     };
 

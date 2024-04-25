@@ -20,6 +20,12 @@ paths = [
 
 ]
 
+[pages]
+paths = [
+    "docs/GettingStarted.md",
+    "docs/Building.md",
+]
+
 #[includes]
 #paths = [
 #    "src/",

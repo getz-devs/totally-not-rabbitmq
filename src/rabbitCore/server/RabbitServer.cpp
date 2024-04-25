@@ -13,12 +13,11 @@ using boost::asio::ip::udp;
 
 RabbitServer::RabbitServer(int port) {
     this->port = port;
+    taskService = TaskService();
 }
 
 void RabbitServer::init() {
-    // Создаем UDP сокет для приема запросов на порту 12345
     server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
-    // server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
 }
 
 void RabbitServer::startPolling() {
@@ -125,13 +124,18 @@ void RabbitServer::processWorker(Worker &worker) {
                     break;
                 }
 
-                // TODO:
-                // update task status
-                // update worker status
-                // find client who wait for this task
-                // send task result to client
-                // update task status
+                task.status = TaskStatus::Ready;
+                taskService.updateTask(task);
+                worker.usedCores -= task.cores;
+                userDBService.updateWorker(worker);
 
+                Client client = userDBService.findClientByID(task.client_hash_id);
+                Message result_message;
+                result_message.action = MessageType::TaskResult;
+                result_message.data = data;
+
+                json result_message_json = result_message;
+                client.connection->sendMessage(result_message_json.dump());
                 break;
             }
 
@@ -165,13 +169,8 @@ void RabbitServer::processClient(Client &client) {
                     std::cerr << "Error parsing task: " << e.what() << std::endl;
                     break;
                 }
-
-                // TODO:
-                // add task to task DB
-                // update task status
-                // find free worker
-                // send task to worker
-                // update task status
+                taskService.addTask(task);
+                std::thread(&RabbitServer::processTask, this, std::ref(task)).detach();
                 break;
             }
 
@@ -182,3 +181,23 @@ void RabbitServer::processClient(Client &client) {
     }
 }
 
+void RabbitServer::processTask(Task &task) {
+    Worker worker = userDBService.findMostFreeWorker(task.cores);
+    while (worker.id.empty()) {
+        std::cout << "Waiting for worker for task " << task.id << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        worker = userDBService.findMostFreeWorker(task.cores);
+    }
+
+    task.worker_hash_id = worker.id;
+    task.status = TaskStatus::SentToWorker;
+    taskService.updateTask(task);
+
+    Message message;
+    message.action = MessageType::TaskRequest;
+    json task_json = task;
+    message.data = task_json;
+
+    json message_json = message;
+    worker.connection->sendMessage(message_json.dump());
+}

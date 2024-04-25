@@ -33,14 +33,16 @@ public:
 private:
     int port;
     boost::asio::io_context io_context;
-    udp::socket *server_socket;
+    udp::socket *server_socket{};
 
     TaskService taskService;
     UserDBService userDBService;
 
-    static void processWorker(Worker &worker);
+    void processWorker(Worker &worker);
 
-    static void processClient(Client &client);
+    void processClient(Client &client);
+
+    void processTask(Task &task);
 };
 
 

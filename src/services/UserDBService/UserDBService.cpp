@@ -30,18 +30,42 @@ void UserDBService::removeWorker(const Worker &worker) {
     }
 }
 
-Worker UserDBService::findMostFreeWorker() {
+Worker UserDBService::findMostFreeWorker(int cores) {
     Worker mostFreeWorker;
-    mostFreeWorker.usedCores = INT_MAX;
+    int minCores = INT_MAX;
     for (auto &worker: workers) {
-        if (worker.usedCores < mostFreeWorker.usedCores) {
+        if (worker.cores >= cores && worker.cores < minCores) {
             mostFreeWorker = worker;
+            minCores = worker.cores;
         }
     }
     return mostFreeWorker;
 }
 
-Worker UserDBService::fingByID(const std::string &id) {
-    // TODO: implement
-    return Worker();
+Client UserDBService::findClientByID(const std::string &id) {
+    for (auto &client: clients) {
+        if (client.id == id) {
+            return client;
+        }
+    }
+    throw std::runtime_error("Client not found");
+}
+
+Worker UserDBService::findWorkerByID(const std::string &id) {
+    for (auto &worker: workers) {
+        if (worker.id == id) {
+            return worker;
+        }
+    }
+    throw std::runtime_error("Worker not found");
+}
+
+void UserDBService::updateWorker(const Worker &worker) {
+    for (auto &w: workers) {
+        if (w.id == worker.id) {
+            w = worker;
+            return;
+        }
+    }
+    throw std::runtime_error("Worker not found");
 }

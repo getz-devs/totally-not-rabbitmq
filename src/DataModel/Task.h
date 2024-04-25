@@ -29,7 +29,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(TaskStatus, {
 })
 
 struct Task {
-    int id;
+    std::string id;
     std::string func;
     std::string input;
     std::string output;

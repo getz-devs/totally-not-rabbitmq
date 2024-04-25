@@ -15,16 +15,21 @@ public:
         workers = std::vector<Worker>();
     };
 
-    void addClient(const Client& client);
-    void addWorker(const Worker& worker);
+    void addClient(const Client &client);
 
-    void removeClient(const Client& client);
-    void removeWorker(const Worker& worker);
+    void addWorker(const Worker &worker);
 
-    void updateWorker(const Worker& worker);
+    void removeClient(const Client &client);
 
-    Worker fingByID(const std::string& id);
-    Worker findMostFreeWorker();
+    void removeWorker(const Worker &worker);
+
+    void updateWorker(const Worker &worker);
+
+    Client findClientByID(const std::string &id);
+
+    Worker findWorkerByID(const std::string &id);
+
+    Worker findMostFreeWorker(int cores);
 
 
 private:

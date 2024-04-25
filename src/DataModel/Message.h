@@ -35,12 +35,12 @@ struct Message {
     std::string data;
 };
 
-void to_json(nlohmann::json &j, const Message &m) {
+inline void to_json(nlohmann::json &j, const Message &m) {
     j = json{{"action", m.action},
              {"data",   m.data}};
 }
 
-void from_json(const nlohmann::json &j, Message &m) {
+inline void from_json(const nlohmann::json &j, Message &m) {
     j.at("action").get_to(m.action);
     j.at("data").get_to(m.data);
 }

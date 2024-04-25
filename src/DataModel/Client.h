@@ -16,11 +16,11 @@ struct Client {
     STIP::Connection *connection;
 };
 
-void to_json(json &j, const Client &c) {
+inline void to_json(json &j, const Client &c) {
     j = json{{"id", c.id}};
 }
 
-void from_json(const json &j, Client &c) {
+inline void from_json(const json &j, Client &c) {
     j.at("id").get_to(c.id);
 }
 

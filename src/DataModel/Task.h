@@ -39,7 +39,7 @@ struct Task {
     std::string client_hash_id;
 };
 
-void to_json(json &j, const Task &t) {
+inline void to_json(json &j, const Task &t) {
     j = json{{"id",             t.id},
              {"func",           t.func},
              {"input",          t.input},
@@ -50,7 +50,7 @@ void to_json(json &j, const Task &t) {
              {"client_hash_id", t.client_hash_id}};
 }
 
-void from_json(const json &j, Task &t) {
+inline void from_json(const json &j, Task &t) {
     j.at("id").get_to(t.id);
     j.at("func").get_to(t.func);
     j.at("input").get_to(t.input);

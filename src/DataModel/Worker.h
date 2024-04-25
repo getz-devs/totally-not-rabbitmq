@@ -18,13 +18,13 @@ struct Worker {
     STIP::Connection *connection;
 };
 
-void to_json(json &j, const Worker &w) {
+inline void to_json(json &j, const Worker &w) {
     j = json{{"id",        w.id},
              {"cores",     w.cores},
              {"usedCores", w.usedCores}};
 }
 
-void from_json(const json &j, Worker &w) {
+inline void from_json(const json &j, Worker &w) {
     j.at("id").get_to(w.id);
     j.at("cores").get_to(w.cores);
     j.at("usedCores").get_to(w.usedCores);

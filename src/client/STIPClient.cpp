@@ -19,7 +19,6 @@ namespace STIP {
         this->connectionManager = new ConnectionManager(socket);
     }
 
-
     void STIPClient::receiveProcess() {
         std::cout << "Start listen" << std::endl;
         while (isRunning) {

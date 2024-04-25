@@ -32,14 +32,35 @@ add_executable(rabbitClientL2Example
         src/protocol/Session.cpp
 )
 
+# -- L3
+
 add_executable(rabbitServerL3cmd
         src/cmd/serverMain.cpp
         src/server/STIPServer.cpp
         src/rabbitCore/server/RabbitServer.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
-
+        src/services/TaskService/TaskService.cpp
+        src/services/UserDBService/UserDBService.cpp
 )
+
+add_executable(rabbitClientL3cmd
+        src/cmd/clientMain.cpp
+        src/client/STIPClient.cpp
+        src/rabbitCore/client/RabbitClient.cpp
+        src/protocol/Connection.cpp
+        src/protocol/Session.cpp
+)
+
+add_executable(rabbitWorkerL3cmd
+        src/cmd/workerMain.cpp
+        src/client/STIPClient.cpp
+        src/rabbitCore/worker/RabbitWorker.cpp
+        src/protocol/Connection.cpp
+        src/protocol/Session.cpp
+)
+
+# -- Tests
 
 add_executable(STIPTest
         src/server/STIPServer.cpp
@@ -75,6 +96,8 @@ CPMAddPackage(
 
 find_package(SqliteOrm)
 find_package(argparse)
+find_package(nlohmann_json)
+
 #find_package(asio REQUIRED)
 
 target_link_libraries(rabbitServerL2Example PRIVATE
@@ -86,13 +109,29 @@ target_link_libraries(rabbitClientL2Example PRIVATE
 #        asio::asio
 )
 
+# -- L3
+
 target_link_libraries(rabbitServerL3cmd PRIVATE
         Boost::asio ws2_32
         argparse::argparse
         sqlite_orm::sqlite_orm
+        nlohmann_json::nlohmann_json
+)
+
+target_link_libraries(rabbitClientL3cmd PRIVATE
+        Boost::asio ws2_32
+        argparse::argparse
+        nlohmann_json::nlohmann_json
+)
+
+target_link_libraries(rabbitWorkerL3cmd PRIVATE
+        Boost::asio ws2_32
+        argparse::argparse
+        nlohmann_json::nlohmann_json
 )
 
 # ---- Create test executable ----
+
 target_link_libraries(STIPTest
         GTest::gtest_main
         Boost::asio ws2_32

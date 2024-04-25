@@ -7,7 +7,6 @@
 #include <iostream>
 
 int main(int argc, const char *argv[]) {
-//    std::cout << "Hello, World!" << std::endl;
     argparse::ArgumentParser program("RabbitServer");
     program.add_argument("-p", "--port")
             .help("Port to listen")
@@ -15,7 +14,7 @@ int main(int argc, const char *argv[]) {
             .action([](const std::string &value) { return std::stoi(value); });
     program.add_description("RabbitServer");
     program.add_epilog("RabbitServer is a server for Rabbit project");
-//    program.parse_args(argc, argv);
+
     try {
         program.parse_args(argc, argv);
     } catch (const std::runtime_error &err) {
@@ -27,6 +26,6 @@ int main(int argc, const char *argv[]) {
     int port = program.get<int>("--port");
     RabbitServer server(12345);
     server.init();
-    server.startPolling();
+//    server.startPolling();
     return 0;
 }

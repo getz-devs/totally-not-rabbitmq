@@ -55,7 +55,7 @@ namespace STIP {
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
 
-                status = 1;
+                status = SendMessageStatuses::INIT_RESPONSE_SUCCESS;
                 cv.notify_all();
                 break;
 
@@ -63,20 +63,20 @@ namespace STIP {
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
 
-                status = 2;
+                status = SendMessageStatuses::INIT_RESPONSE_FAILURE;
                 cv.notify_all();
                 break;
             case Command::MSG_RESPONSE_RESEND: // Resend ask
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
-
-                // TODO: Resend
+                status = DATA_RESPONSE_RESEND;
+                cv.notify_all();
                 break;
             case Command::MSG_RESPONSE_ALL_RECEIVED : // Success
 //            std::cout << "MessageSession processIncomingPacket" << std::endl;
 //            std::cout << "Message: " << packet.data << std::endl;
 
-                status = 5;
+                status = DATA_RESPONSE_SUCCESS;
                 cv.notify_all();
                 break;
             default:
@@ -94,15 +94,17 @@ namespace STIP {
         memcpy(packet[0].data, &size, sizeof(size_t));
         packet[0].header.size = sizeof(STIP_HEADER) + sizeof(size_t);
 
+        status = SendMessageStatuses::INIT_REQUEST_SENT;
         socket->send_to(boost::asio::buffer(packet, packet[0].header.size), endpoint);
 
         std::unique_lock<std::mutex> lock(mtx);
-        status = 0;
-        cv.wait(lock, [this] { return status == 1 || _cancaled; });
+        status = SendMessageStatuses::INIT;
+        cv.wait(lock, [this] { return status == SendMessageStatuses::INIT_RESPONSE_SUCCESS || status == SendMessageStatuses::INIT_RESPONSE_FAILURE || _cancaled; });
         return true;
     }
 
     bool SendMessageSession::sendData() {
+        status = SendMessageStatuses::DATA_REQEUST_SENT;
         for (int i = 0; i < packet_counts; i++) {
             sendPart(i);
         }
@@ -125,8 +127,8 @@ namespace STIP {
 
     bool SendMessageSession::waitApproval() {
         std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] { return (status == 5) || status == 6 || _cancaled; });
-        return status == 5;
+        cv.wait(lock, [this] { return (status == DATA_RESPONSE_SUCCESS) || (status == DATA_RESPONSE_FAILURE) || _cancaled; });
+        return status == DATA_RESPONSE_SUCCESS;
     }
 
     void SendMessageSession::cancel() {
@@ -170,6 +172,38 @@ namespace STIP {
                        packet.header.size - sizeof(STIP_HEADER));
                 receivedParts[packet.header.packet_id] = true;
                 break;
+            case Command::MSG_REQUEST_ALL_RECEIVED:
+                if (packet.header.session_id != id) {
+                    return;
+                }
+
+                uint32_t unreceived = countUnreceivedParts();
+                if (unreceived == 0) {
+                    packet_response[0].header.command = Command::MSG_RESPONSE_ALL_RECEIVED;
+                    packet_response[0].header.session_id = id;
+                    packet_response[0].header.size = sizeof(STIP_HEADER);
+                    socket->send_to(boost::asio::buffer(packet_response, packet_response[0].header.size), endpoint);
+                } else {
+                    packet_response[0].header.command = Command::MSG_RESPONSE_RESEND;
+                    packet_response[0].header.session_id = id;
+                    // data:
+
+                    packet_response[0].header.packet_id = unreceived;
+                    packet_response[0].header.size = sizeof(STIP_HEADER) + sizeof(uint32_t)*unreceived;
+
+                    // fill data
+                    uint32_t temp_data[unreceived];
+                    uint32_t pos = 0;
+                    for (int i = 0; i < packet_counts; i++) {
+                        if (!receivedParts[i]) {
+                            temp_data[pos] = i;
+                            pos++;
+                        }
+                    }
+                    memcpy(packet_response[0].data, temp_data, sizeof(uint32_t)*unreceived);
+                    socket->send_to(boost::asio::buffer(packet_response, packet_response[0].header.size), endpoint);
+                }
+                break;
         }
 
         if (std::all_of(receivedParts.begin(), receivedParts.end(), [](bool i) { return i; })) {
@@ -187,6 +221,9 @@ namespace STIP {
         return status;
     }
 
+    uint32_t ReceiveMessageSession::countUnreceivedParts() const {
+        return std::count(receivedParts.begin(), receivedParts.end(), true);
+    }
 
 
 // ------------------------------------------------ SessionManager.h ------------------------------------------------

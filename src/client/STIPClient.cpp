@@ -80,7 +80,6 @@ namespace STIP {
             connection->startProcessing();
             return connection;
         }
-
     }
 
     Connection *STIPClient::connect(udp::endpoint &targetEndpoint) {

@@ -47,6 +47,8 @@ private:
     void processTask(Task &task);
 
     void checkTaskQueue(Worker &worker);
+
+    std::string logTime();
 };
 
 

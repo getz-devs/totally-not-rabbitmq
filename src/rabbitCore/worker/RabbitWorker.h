@@ -26,7 +26,7 @@ typedef std::map<std::string, func_type> func_map_type;
 
 class RabbitWorker {
 public:
-    RabbitWorker(std::string host, int port, int cores);
+    RabbitWorker(std::string id, std::string host, int port, int cores);
 
     void init();
 
@@ -37,6 +37,7 @@ public:
     }
 
 private:
+    std::string id;
     std::string host;
     int port;
     int cores;

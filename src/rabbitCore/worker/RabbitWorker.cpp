@@ -163,7 +163,7 @@ void RabbitWorker::simpleMathHandler(std::string id, json data, int taskCores) {
 
     json jResult = json::object();
     jResult["result"] = result;
-    TaskResult taskResult{id, jResult.dump(), 1};
+    struct TaskResult taskResult{id, jResult.dump(), 1};
 
     json response = taskResult;
     connection->sendMessage(response.dump());
@@ -194,7 +194,7 @@ void RabbitWorker::determinantHandler(std::string id, json data, int taskCores) 
     for (int &result: results) {
         jResults.push_back(result);
     }
-    TaskResult taskResult{id, jResults.dump(), 1};
+    struct TaskResult taskResult{id, jResults.dump(), 1};
 
     json response = taskResult;
     connection->sendMessage(response.dump());

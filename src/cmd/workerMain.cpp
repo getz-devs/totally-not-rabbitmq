@@ -8,6 +8,9 @@
 
 int main(int argc, const char *argv[]) {
     argparse::ArgumentParser program("RabbitWorker");
+    program.add_argument("-i", "--id")
+            .help("Worker ID")
+            .default_value("1234");
     program.add_argument("-h", "--host")
             .help("Server Host")
             .default_value("localhost");
@@ -30,11 +33,12 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
 
-    std::string host = program.get<std::string>("--host");
+    auto id = program.get<std::string>("--id");
+    auto host = program.get<std::string>("--host");
     int port = program.get<int>("--port");
     int cores = program.get<int>("--cores");
-    RabbitWorker worker(host, port, cores);
+    RabbitWorker worker(id, host, port, cores);
     worker.init();
-//    worker.startPolling();
+    worker.startPolling();
     return 0;
 }

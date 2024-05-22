@@ -42,6 +42,7 @@ add_executable(rabbitServerL3cmd
         src/protocol/Session.cpp
         src/services/TaskService/TaskService.cpp
         src/services/UserDBService/UserDBService.cpp
+        src/protocol/SessionKiller.cpp
 )
 
 add_executable(rabbitClientL3cmd
@@ -50,6 +51,7 @@ add_executable(rabbitClientL3cmd
         src/rabbitCore/client/RabbitClient.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
+        src/protocol/SessionKiller.cpp
 )
 
 add_executable(rabbitWorkerL3cmd
@@ -58,6 +60,7 @@ add_executable(rabbitWorkerL3cmd
         src/rabbitCore/worker/RabbitWorker.cpp
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
+        src/protocol/SessionKiller.cpp
 )
 
 # -- Tests
@@ -73,6 +76,7 @@ add_executable(STIPTest
 
 # add sources dir
 include_directories(src)
+include_directories(src/DataModel)
 
 target_compile_features(rabbitServerL2Example PRIVATE cxx_std_17)
 target_compile_features(rabbitClientL2Example PRIVATE cxx_std_17)

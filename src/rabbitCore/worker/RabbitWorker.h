@@ -8,7 +8,6 @@
 #include <boost/asio.hpp>
 #include "protocol/Connection.h"
 #include <nlohmann/json.hpp>
-#include <adoint_backcompat.h>
 #include <vector>
 #include <iostream>
 #include <string>

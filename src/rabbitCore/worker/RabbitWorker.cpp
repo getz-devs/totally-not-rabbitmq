@@ -74,29 +74,27 @@ int RabbitWorker::simpleMath(int a, int b) {
     return c;
 }
 
+
 int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
-    int det = 0;
-    std::vector<std::vector<int>> submatrix(n);
-    if (n == 2)
-        return ((matrix[0][0] * matrix[1][1]) - (matrix[1][0] * matrix[0][1]));
-    else {
-        for (int x = 0; x < n; x++) {
-            int subi = 0;
-            for (int i = 1; i < n; i++) {
-                int subj = 0;
-                for (int j = 0; j < n; j++) {
-                    if (j == x)
-                        continue;
-                    submatrix[subi][subj] = matrix[i][j];
-                    subj++;
+    int det = 1;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            while (matrix[j][i] != 0) {
+                int ratio = matrix[i][i] / matrix[j][i];
+                for (int k = i; k < n; k++) {
+                    matrix[i][k] -= ratio * matrix[j][k];
                 }
-                subi++;
+                std::swap(matrix[i], matrix[j]);
+                det *= -1;
             }
-            det = det + (pow(-1, x) * matrix[0][x] * determinant(submatrix, n - 1));
         }
+        det *= matrix[i][i];
     }
+
     return det;
 }
+
 
 // handlers
 

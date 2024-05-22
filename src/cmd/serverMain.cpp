@@ -24,8 +24,8 @@ int main(int argc, const char *argv[]) {
     }
 
     int port = program.get<int>("--port");
-    RabbitServer server(12345);
+    RabbitServer server(port);
     server.init();
-//    server.startPolling();
+    server.startPolling();
     return 0;
 }

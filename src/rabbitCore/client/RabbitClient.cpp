@@ -8,12 +8,14 @@
 #include "protocol/STIP.h"
 #include "client/STIPClient.h"
 #include "protocol/Connection.h"
+#include "DataModel/Client.h"
 
 using namespace STIP;
 
 using boost::asio::ip::udp;
 
-RabbitClient::RabbitClient(std::string host, int port) {
+RabbitClient::RabbitClient(std::string id, std::string host, int port) {
+    this->id = std::move(id);
     this->host = std::move(host);
     this->port = port;
 }
@@ -32,7 +34,30 @@ void RabbitClient::init() {
 
     connection = client.connect(server_endpoint);
 
-    // TODO: Register
+    // Register client
+    if (connection) {
+        // Create Client object to send
+        Client clientInfo = {
+                id,
+                connection
+        };
+
+        nlohmann::json clientJson;
+        to_json(clientJson, clientInfo);
+
+        Message message = {
+                MessageType::RegisterClient,
+                clientJson.dump()
+        };
+
+        nlohmann::json messageJson;
+        to_json(messageJson, message);
+
+        std::string msg = messageJson.dump();
+        connection->sendMessage(msg);
+    } else {
+        std::cerr << "Error: Failed to connect to server." << std::endl;
+    }
 }
 
 void RabbitClient::receiveResutls() {

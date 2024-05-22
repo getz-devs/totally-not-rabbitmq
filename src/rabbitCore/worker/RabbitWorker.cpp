@@ -10,13 +10,16 @@
 #include "protocol/Connection.h"
 #include "client/STIPClient.h"
 #include "DataModel/TaskResult.h"
+#include "DataModel/Worker.h"
+#include "DataModel/Message.h"
 
 using boost::asio::ip::udp;
 
 //typedef void (RabbitWorker::*func_type)(void);
 //typedef std::map<std::string, func_type> func_map_type;
 
-RabbitWorker::RabbitWorker(std::string host, int port, int cores) {
+RabbitWorker::RabbitWorker(std::string id, std::string host, int port, int cores) {
+    this->id = std::move(id);
     this->host = std::move(host);
     this->port = port;
     this->cores = cores;
@@ -39,8 +42,32 @@ void RabbitWorker::init() {
     mapping["simpleMath"] = &RabbitWorker::simpleMathHandler;
     mapping["determinant"] = &RabbitWorker::determinantHandler;
 
+    // Register worker
+    if (connection) {
+        // Create Worker object to send
+        Worker worker = {
+                id,
+                cores,
+                0,
+                nullptr
+        };
 
-    // TODO: Register
+        nlohmann::json workerJson;
+        to_json(workerJson, worker);
+
+        Message message = {
+                MessageType::RegisterWorker,
+                workerJson.dump()
+        };
+
+        nlohmann::json messageJson;
+        to_json(messageJson, message);
+
+        std::string msg = messageJson.dump();
+        connection->sendMessage(msg);
+    } else {
+        std::cerr << "Error: Failed to connect to server." << std::endl;
+    }
 }
 
 

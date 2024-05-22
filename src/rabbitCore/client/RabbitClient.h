@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 class RabbitClient {
 public:
-    RabbitClient(std::string host, int port);
+    RabbitClient(std::string id, std::string host, int port);
 
     void init();
 

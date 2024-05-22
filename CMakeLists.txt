@@ -43,6 +43,7 @@ add_executable(rabbitServerL3cmd
         src/services/TaskService/TaskService.cpp
         src/services/UserDBService/UserDBService.cpp
         src/protocol/SessionKiller.cpp
+        src/services/TaskQueue/TaskQueue.h
 )
 
 add_executable(rabbitClientL3cmd
@@ -52,6 +53,7 @@ add_executable(rabbitClientL3cmd
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
         src/protocol/SessionKiller.cpp
+        src/services/TaskQueue/TaskQueue.h
 )
 
 add_executable(rabbitWorkerL3cmd
@@ -61,6 +63,7 @@ add_executable(rabbitWorkerL3cmd
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
         src/protocol/SessionKiller.cpp
+        src/services/TaskQueue/TaskQueue.h
 )
 
 # -- Tests

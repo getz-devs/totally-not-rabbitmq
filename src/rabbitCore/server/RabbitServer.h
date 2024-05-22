@@ -10,6 +10,7 @@
 #include "protocol/Connection.h"
 #include "services/TaskService/TaskService.h"
 #include "services/UserDBService/UserDBService.h"
+#include "services/TaskQueue/TaskQueue.h"
 #include <nlohmann/json.hpp>
 
 using boost::asio::ip::udp;
@@ -37,12 +38,15 @@ private:
 
     TaskService taskService;
     UserDBService userDBService;
+    TaskQueue pendingTasks;
 
     void processWorker(Worker &worker);
 
     void processClient(Client &client);
 
     void processTask(Task &task);
+
+    void checkTaskQueue(Worker &worker);
 };
 
 

@@ -136,6 +136,8 @@ void RabbitServer::processWorker(Worker &worker) {
 
                 json result_message_json = result_message;
                 client.connection->sendMessage(result_message_json.dump());
+
+                checkTaskQueue(worker);
                 break;
             }
 
@@ -181,12 +183,32 @@ void RabbitServer::processClient(Client &client) {
     }
 }
 
+void RabbitServer::checkTaskQueue(Worker &worker) {
+    Task pendingTask;
+    if (pendingTasks.tryDequeue(pendingTask, worker.cores - worker.usedCores)) {
+        // Assign the dequeued task to the worker.
+        std::cout << "Assigning pending task " << pendingTask.id << " to worker "
+                  << worker.id << "\n";
+
+        // Send the task to the worker (similar to processTask)
+        Message message;
+        message.action = MessageType::TaskRequest;
+        json task_json = pendingTask; // Use pendingTask here
+        message.data = task_json;
+
+        json message_json = message;
+        worker.connection->sendMessage(message_json.dump());
+    }
+}
+
+
 void RabbitServer::processTask(Task &task) {
     Worker worker = userDBService.findMostFreeWorker(task.cores);
-    while (worker.id.empty()) {
-        std::cout << "Waiting for worker for task " << task.id << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        worker = userDBService.findMostFreeWorker(task.cores);
+
+    if (worker.id.empty()) {
+        pendingTasks.enqueue(task);
+        std::cout << "Task " << task.id << " added to queue.\n";
+        return; // Exit the function - no need to wait
     }
 
     task.worker_hash_id = worker.id;

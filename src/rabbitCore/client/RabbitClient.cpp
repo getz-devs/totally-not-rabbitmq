@@ -9,6 +9,7 @@
 #include "client/STIPClient.h"
 #include "protocol/Connection.h"
 #include "DataModel/Client.h"
+#include "Message.h"
 
 using namespace STIP;
 
@@ -77,7 +78,7 @@ void RabbitClient::receiveResutls() {
     }
 }
 
-void RabbitClient::sendTask(TaskRequest t) {
+void RabbitClient::sendTask(struct TaskRequest t) {
     json task = t;
     connection->sendMessage(task.dump());
 }

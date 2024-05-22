@@ -28,11 +28,11 @@ public:
     }
 
 private:
+    std::string id;
     std::string host;
     int port;
     STIP::Connection *connection{};
     udp::socket *server_socket{};
-
 };
 
 #endif //RABBIT_RabbitClient_H

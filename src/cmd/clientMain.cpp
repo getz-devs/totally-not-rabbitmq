@@ -61,13 +61,6 @@ std::string promptMatrixDeterminantTask() {
     return data.dump();
 }
 
-std::string promptLongTask() {
-    std::cout << "Enter delay:" << std::endl;
-    std::cout << "> ";
-    int delay;
-    std::cin >> delay;
-}
-
 void *receiverThread(void *arg) {
     auto *client = static_cast<RabbitClient *>(arg);
     client->receiveResutls();
@@ -79,8 +72,8 @@ void *senderThread(void *arg) {
 
     while (true) {
         std::cout << "Enter task number:" << std::endl;
-        std::cout << "1 - matrix multiplication" << std::endl;
-        std::cout << "2 - simulate something cool" << std::endl;
+        std::cout << "1 - simple math" << std::endl;
+        std::cout << "2 - matrix multiplication" << std::endl;
         std::cout << "0 - exit console" << std::endl;
         std::cout << "> ";
 
@@ -93,14 +86,12 @@ void *senderThread(void *arg) {
         switch (taskNum) {
             case 1:
                 requestParams = promptSimpleMathTask();
+                requestFunc = "simpleMath";
                 break;
 
             case 2:
                 requestParams = promptMatrixDeterminantTask();
-                break;
-
-            case 3:
-                requestParams = promptLongTask();
+                requestFunc = "determinant";
                 break;
 
             case 0:
@@ -111,7 +102,7 @@ void *senderThread(void *arg) {
                 break;
         }
 
-        TaskRequest tr{0, taskNum, requestParams, cores};
+        TaskRequest tr{0, requestFunc, requestParams, cores};
         client->sendTask(tr);
     }
     return nullptr;
@@ -119,6 +110,9 @@ void *senderThread(void *arg) {
 
 int main(int argc, const char *argv[]) {
     argparse::ArgumentParser program("RabbitClient");
+    program.add_argument("-i", "--id")
+            .help("Worker ID")
+            .default_value("1234");
     program.add_argument("-h", "--host")
             .help("Server Host")
             .default_value("localhost");
@@ -137,9 +131,10 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
 
+    auto id = program.get<std::string>("--id");
     auto host = program.get<std::string>("--host");
     int port = program.get<int>("--port");
-    RabbitClient client(host, port);
+    RabbitClient client(id, host, port);
     client.init();
 
     pthread_t receiverThreadId, senderThreadId;

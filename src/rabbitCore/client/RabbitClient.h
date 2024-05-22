@@ -9,6 +9,7 @@
 #include "protocol/Connection.h"
 #include <nlohmann/json.hpp>
 #include "DataModel/TaskRequest.h"
+#include "client/STIPClient.h"
 
 using boost::asio::ip::udp;
 using json = nlohmann::json;
@@ -18,9 +19,7 @@ public:
     RabbitClient(std::string id, std::string host, int port);
 
     void init();
-
     void receiveResutls();
-
     void sendTask(TaskRequest t);
 
     ~RabbitClient() {
@@ -28,6 +27,8 @@ public:
     }
 
 private:
+    STIP::STIPClient *client;
+
     std::string id;
     std::string host;
     int port;

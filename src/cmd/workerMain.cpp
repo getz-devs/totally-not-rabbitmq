@@ -39,7 +39,7 @@ int main(int argc, const char *argv[]) {
     int cores = program.get<int>("--cores");
     RabbitWorker worker(id, host, port, cores);
     worker.init();
-    std::cout << "[ura]";
+    std::cout << "Worker [" << id << "] started on [" << host << ":" << port << "]" << std::endl;
     worker.startPolling();
     return 0;
 }

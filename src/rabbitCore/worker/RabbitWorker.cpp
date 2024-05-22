@@ -34,10 +34,10 @@ void RabbitWorker::init() {
     server_socket = new udp::socket(io_context);
     server_socket->open(udp::v4());
 
-    STIP::STIPClient client(*server_socket);
-    client.startListen();
+    client = new STIP::STIPClient(*server_socket);
+    client->startListen();
 
-    connection = client.connect(server_endpoint);
+    connection = client->connect(server_endpoint);
 
     mapping["simpleMath"] = &RabbitWorker::simpleMathHandler;
     mapping["determinant"] = &RabbitWorker::determinantHandler;

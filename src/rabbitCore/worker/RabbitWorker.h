@@ -7,6 +7,7 @@
 
 #include <boost/asio.hpp>
 #include "protocol/Connection.h"
+#include "client/STIPClient.h"
 #include <nlohmann/json.hpp>
 #include <vector>
 #include <iostream>
@@ -36,6 +37,8 @@ public:
     }
 
 private:
+    STIP::STIPClient *client;
+
     std::string id;
     std::string host;
     int port;
@@ -58,7 +61,6 @@ private:
     void determinantHandler(std::string id, json data, int taskCores);
 
     func_map_type mapping;
-
 };
 
 

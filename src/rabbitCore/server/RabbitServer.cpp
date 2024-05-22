@@ -37,13 +37,14 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
     std::cout << "Connection accepted\n\n" << std::endl;
 
     auto receiveMessage = connection->receiveMessage();
-    json request = receiveMessage->getDataAsString();
+    json request = json::parse(receiveMessage->getDataAsString());
+    std::cout << "Received message: " << request.dump() << std::endl;
     Message message;
     json data;
 
     try {
         message = request.template get<Message>();
-        data = message.data;
+        data = json::parse(message.data);
     } catch (json::exception &e) {
         std::cerr << "Error parsing message: " << e.what() << std::endl;
         return;
@@ -113,7 +114,7 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 void RabbitServer::processWorker(Worker &worker) {
     for (;;) {
         auto receiveMessage = worker.connection->receiveMessage();
-        json request = receiveMessage->getDataAsString();
+        json request = json::parse(receiveMessage->getDataAsString());
         Message message;
         json data;
         try {
@@ -164,7 +165,7 @@ void RabbitServer::processWorker(Worker &worker) {
 void RabbitServer::processClient(Client &client) {
     for (;;) {
         auto receiveMessage = client.connection->receiveMessage();
-        json request = receiveMessage->getDataAsString();
+        json request = json::parse(receiveMessage->getDataAsString());
         Message message;
         json data;
         try {

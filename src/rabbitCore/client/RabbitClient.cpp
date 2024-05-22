@@ -27,13 +27,13 @@ void RabbitClient::init() {
     udp::resolver resolver(io_context);
     udp::endpoint server_endpoint = *resolver.resolve(udp::v4(), host, std::to_string(port)).begin();
 
-    server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
+    server_socket = new udp::socket(io_context);
     server_socket->open(udp::v4());
 
-    STIPClient client(*server_socket);
-    client.startListen();
+    client = new STIP::STIPClient(*server_socket);
+    client->startListen();
 
-    connection = client.connect(server_endpoint);
+    connection = client->connect(server_endpoint);
 
     // Register client
     if (connection) {

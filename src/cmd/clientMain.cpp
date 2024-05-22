@@ -69,7 +69,6 @@ void *receiverThread(void *arg) {
 
 void *senderThread(void *arg) {
     auto *client = static_cast<RabbitClient *>(arg);
-
     while (true) {
         std::cout << "Enter task number:" << std::endl;
         std::cout << "1 - simple math" << std::endl;

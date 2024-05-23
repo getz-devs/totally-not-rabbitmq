@@ -79,9 +79,9 @@ void RabbitWorker::startPolling() {
     std::cout << "RabbitWorker::startPolling - Polling started" << std::endl;
     for (;;) {
         STIP::ReceiveMessageSession *received = connection->receiveMessage();
-        std::cout << "RabbitWorker::startPolling - Received message: " << received->getDataAsString() << std::endl;
+//        std::cout << "RabbitWorker::startPolling - Received message: " << received->getDataAsString() << std::endl;
         json request = json::parse(received->getDataAsString());
-        std::cout << "RabbitWorker::startPolling - Received message: " << request.dump() << std::endl;
+//        std::cout << "RabbitWorker::startPolling - Received message: " << request.dump() << std::endl;
 
         Message message = request.get<Message>();
         json messageData = json::parse(message.data);

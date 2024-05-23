@@ -46,36 +46,141 @@ std::string promptMatrixDeterminantTask() {
     std::cout << "> ";
     std::cin >> matrixCount;
 
-    std::vector<std::vector<std::vector<int>>> matrices;
+//    std::random_device rd;
+//    std::mt19937 gen(rd());
+//    std::uniform_int_distribution<> distrib(0, 99);
+//    const int totalNumbers = matrixSize * matrixSize * matrixCount;
+//    std::vector<int> randomNumbers;
+//    randomNumbers.reserve(totalNumbers);
+//
+//    auto begin = std::chrono::steady_clock::now();
+//    std::cout << "Start generating random numbers " << std::endl;
+//
+//    for (int i = 0; i < totalNumbers; ++i) {
+//        randomNumbers.push_back(distrib(gen));
+//    }
+//
+//    auto gen_end = std::chrono::steady_clock::now();
+//    std::chrono::duration<double> gen_elapsed = gen_end - begin;
+//    std::cout << "Elapsed time for generating random numbers: " << gen_elapsed.count() << " seconds." << std::endl;
+//
+//    json data = json::array();
+//    auto fill_begin = std::chrono::steady_clock::now();
+//    std::cout << "Start filling matrices " << std::endl;
+//
+//    int index = 0;
+//    for (int i = 0; i < matrixCount; ++i) {
+//        json matrixJson = json::array();
+//        for (int j = 0; j < matrixSize; ++j) {
+//            json rowJson = json::array();
+//            for (int k = 0; k < matrixSize; ++k) {
+//                rowJson.emplace_back(randomNumbers[index++]);
+//            }
+//            matrixJson.emplace_back(rowJson);
+//        }
+//        data.emplace_back(matrixJson);
+//    }
+//    auto fill_end = std::chrono::steady_clock::now();
+//    std::chrono::duration<double> fill_elapsed = fill_end - fill_begin;
+//    std::cout << "Elapsed time for filling matrices: " << fill_elapsed.count() << " seconds." << std::endl;
+//
+//    auto total_end = std::chrono::steady_clock::now();
+//    std::chrono::duration<double> total_elapsed = total_end - begin;
+//    std::cout << "Total elapsed time: " << total_elapsed.count() << " seconds." << std::endl;
+//    return data.dump();
 
-    for (int i = 0; i < matrixCount; i++) {
-        std::vector<std::vector<int>> matrix;
-        for (int j = 0; j < matrixSize; j++) {
-            std::vector<int> row;
-            for (int k = 0; k < matrixSize; k++) {
-                row.push_back(int(rand() % 100));
-            }
-            matrix.push_back(row);
-        }
-        matrices.push_back(matrix);
-    }
-
-    // размер кол-во элемент элемент
-    // 10     100    23 23 23 23
+//    json data = json::array();
+//    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+//    std::cout << "Start randoming " << std::endl;
+//    std::random_device rd; // Источник энтропии
+//    std::mt19937 gen(rd()); // Генератор Mersenne Twister
+//    std::uniform_int_distribution<> distrib(0, 99); // Распределение от 0 до 99
+//    for (int i = 0; i < matrixCount; ++i) {
+//        json matrixJson = json::array();
+//        for (int j = 0; j < matrixSize; ++j) {
+//            json rowJson = json::array();
+//            for (int k = 0; k < matrixSize; ++k) {
+//                rowJson.emplace_back(distrib(gen));
+//            }
+//            matrixJson.emplace_back(rowJson);
+//        }
+//        data.emplace_back(matrixJson);
+//    }
+//    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+//    std::chrono::duration<double> elapsed = end - begin;
+//    std::cout << "Elapsed time: " << elapsed.count() << " seconds." << std::endl;
+//    return data.dump();
 
     json data = json::array();
-    for (auto &matrix: matrices) {
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    std::cout << "Start randoming " << std::endl;
+    for (int i = 0; i < matrixCount; ++i) {
         json matrixJson = json::array();
-        for (auto &row: matrix) {
+        for (int j = 0; j < matrixSize; ++j) {
             json rowJson = json::array();
-            for (int &elem: row) {
-                rowJson.push_back(elem);
+            for (int k = 0; k < matrixSize; ++k) {
+                rowJson.emplace_back(rand() % 100);
             }
-            matrixJson.push_back(rowJson);
+            matrixJson.emplace_back(rowJson);
         }
-        data.push_back(matrixJson);
+        data.emplace_back(matrixJson);
     }
+    std::cout << "End randoming" << std::endl;
+    // measure end time
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << std::endl;
     return data.dump();
+
+//    std::vector<std::vector<std::vector<int>>> matrices;
+//
+//    std::cout << "Start randoming" << std::endl;
+//    for (int i = 0; i < matrixCount; i++) {
+//        std::vector<std::vector<int>> matrix;
+//        matrix.resize(matrixSize);
+//        for (int j = 0; j < matrixSize; j++) {
+//            std::vector<int> row;
+//            row.resize(matrixSize);
+//            for (int k = 0; k < matrixSize; k++) {
+//                row.emplace_back(int(rand() % 100));
+//            }
+//            matrix.emplace_back(row);
+//        }
+//        matrices.emplace_back(matrix);
+//    }
+//    std::cout << "End randoming" << std::endl;
+//    return data.dump();
+
+//    std::vector<std::vector<std::vector<int>>> matrices;
+//
+//    std::cout << "Start randoming" << std::endl;
+//    for (int i = 0; i < matrixCount; i++) {
+//        std::vector<std::vector<int>> matrix;
+//        matrix.resize(matrixSize);
+//        for (int j = 0; j < matrixSize; j++) {
+//            std::vector<int> row;
+//            row.resize(matrixSize);
+//            for (int k = 0; k < matrixSize; k++) {
+//                row.push_back(int(rand() % 100));
+//            }
+//            matrix.push_back(row);
+//        }
+//        matrices.push_back(matrix);
+//    }
+//    std::cout << "End randoming" << std::endl;
+//
+//    json data = json::array();
+//    for (auto &matrix: matrices) {
+//        json matrixJson = json::array();
+//        for (auto &row: matrix) {
+//            json rowJson = json::array();
+//            for (int &elem: row) {
+//                rowJson.push_back(elem);
+//            }
+//            matrixJson.push_back(rowJson);
+//        }
+//        data.push_back(matrixJson);
+//    }
+//    return data.dump();
 }
 
 void *receiverThread(void *arg) {
@@ -128,7 +233,6 @@ void *senderThread(void *arg) {
                     std::cout << "Enter delay between tasks:" << std::endl;
                     std::cout << "> ";
                     std::cin >> delay;
-
                     for (t = 0; t < tasksCount; t++) {
                         json data;
                         data["a"] = rand() % 100;

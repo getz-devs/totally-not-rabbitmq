@@ -117,7 +117,7 @@ void RabbitServer::processWorker(Worker &worker) {
     for (;;) {
         auto receiveMessage = worker.connection->receiveMessage();
 //        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
-        json request = json::parse(receiveMessage->getDataAsString());
+        json request = json::parse(receiveMessage->getDataAsString()); // TODO change parse
         std::cout << "Received message: " << request.dump() << std::endl;
         Message message;
         json data;
@@ -177,16 +177,25 @@ void RabbitServer::processWorker(Worker &worker) {
 }
 
 void RabbitServer::processClient(Client &client) {
+    std::vector<std::thread> threads;
     for (;;) {
         auto receiveMessage = client.connection->receiveMessage();
         std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
-        json request = json::parse(receiveMessage->getDataAsString());
-        std::cout << "Received message: " << request.dump() << std::endl;
+//        json request = json::parse(receiveMessage->getDataAsString());
+//        std::cout << "Received message: " << request.dump() << std::endl;
+        std::cout << "start converting" << std::endl;
+        auto rawMessage = receiveMessage->getData();
+        char * payload = static_cast<char *>(rawMessage.first);
+        std::cout << "start parsing" << std::endl;
+        json request = json::parse(payload, payload + rawMessage.second);
+
         Message message;
         json data;
         try {
+            std::cout << "Loaded to request"  << std::endl;
             message = request.template get<Message>();
             data = json::parse(message.data);
+            std::cout << "Loaded to data1"  << std::endl;
         } catch (json::exception &e) {
             std::cerr << "Error parsing message: " << e.what() << std::endl;
             continue;
@@ -197,8 +206,10 @@ void RabbitServer::processClient(Client &client) {
                 std::cout << logTime() << "Received TaskRequest from client: " << client.id << std::endl;
                 struct TaskRequest taskRequest;
                 try {
-                    std::cout << "Task data: " << data.dump() << std::endl;
+//                    std::cout << "Task data: " << data.dump() << std::endl;
+                    std::cout << "Loaded to data2"  << std::endl;
                     taskRequest = data.template get<struct TaskRequest>();
+                    std::cout << "Loaded to taskRequest"  << std::endl;
                     std::cout << logTime() << "Task added: " << taskRequest.id << " (Cores: " << taskRequest.cores
                               << ")"
                               << std::endl;
@@ -218,7 +229,10 @@ void RabbitServer::processClient(Client &client) {
                 };
                 try {
                     taskService.addTask(task);
-                    std::thread(&RabbitServer::processTask, this, std::ref(task)).detach();
+//                    std::thread(&RabbitServer::processTask, this, std::ref(task)).detach();
+                    threads.emplace_back([this, task]() mutable {
+                        this->processTask(task);
+                    });
                 } catch (std::exception &e) {
                     std::cerr << logTime() << "Error processing task: " << e.what() << std::endl;
                 }
@@ -228,6 +242,11 @@ void RabbitServer::processClient(Client &client) {
             default:
                 std::cerr << logTime() << "Unknown action: " << message.action << std::endl;
                 break;
+        }
+    }
+    for (auto& thread : threads) {
+        if (thread.joinable()) {
+            thread.join();
         }
     }
 }

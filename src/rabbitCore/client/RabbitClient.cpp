@@ -22,10 +22,9 @@ RabbitClient::RabbitClient(std::string id, std::string host, int port) {
 }
 
 void RabbitClient::init() {
-    boost::asio::io_context io_context;
-
-    udp::resolver resolver(io_context);
-    udp::endpoint server_endpoint = *resolver.resolve(udp::v4(), host, std::to_string(port)).begin();
+    resolver = new udp::resolver(io_context);
+    auto endpoints = resolver->resolve(udp::v4(), host, std::to_string(port));
+    server_endpoint = new udp::endpoint(*endpoints.begin());
 
     server_socket = new udp::socket(io_context);
     server_socket->open(udp::v4());
@@ -33,7 +32,7 @@ void RabbitClient::init() {
     client = new STIP::STIPClient(*server_socket);
     client->startListen();
 
-    connection = client->connect(server_endpoint);
+    connection = client->connect(*server_endpoint);
 
     // Register client
     if (connection) {
@@ -59,12 +58,27 @@ void RabbitClient::init() {
     } else {
         std::cerr << "Error: Failed to connect to server." << std::endl;
     }
+
+////////////
+
+//
+//    try {
+//        Message test = {
+//                MessageType::Invalid,
+//                "test"
+//        };
+//        json testJson = test;
+//        connection->sendMessage(testJson.dump());
+//    } catch (std::exception e) {
+//        std::cerr << "Error sending Test message 2: " << e.what() << std::endl;
+//        return;
+//    }
 }
 
 void RabbitClient::receiveResutls() {
     for (;;) {
         STIP::ReceiveMessageSession *received = connection->receiveMessage();
-        json result = received->getDataAsString();
+        json result = json::parse(received->getDataAsString());
         json data = result["data"];
 
         if (data.is_array()) {
@@ -80,5 +94,24 @@ void RabbitClient::receiveResutls() {
 
 void RabbitClient::sendTask(struct TaskRequest t) {
     json task = t;
-    connection->sendMessage(task.dump());
+    Message m = {
+            MessageType::TaskRequest,
+            task.dump()
+    };
+    json message = m;
+    connection->sendMessage(message.dump());
+}
+
+void RabbitClient::testMessage(std::string msg) {
+    try {
+        Message test = {
+                MessageType::Invalid,
+                msg
+        };
+        json testJson = test;
+        connection->sendMessage(testJson.dump());
+    } catch (std::exception e) {
+        std::cerr << "Error sending Test message: " << e.what() << std::endl;
+        return;
+    }
 }

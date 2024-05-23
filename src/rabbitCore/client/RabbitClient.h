@@ -26,6 +26,8 @@ public:
         delete server_socket;
     }
 
+    void testMessage(std::string msg);
+
 private:
     STIP::STIPClient *client;
 
@@ -34,6 +36,11 @@ private:
     int port;
     STIP::Connection *connection{};
     udp::socket *server_socket{};
+
+    udp::resolver *resolver;
+    udp::endpoint *server_endpoint;
+
+    boost::asio::io_context io_context;
 };
 
 #endif //RABBIT_RabbitClient_H

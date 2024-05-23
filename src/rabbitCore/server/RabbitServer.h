@@ -40,6 +40,9 @@ private:
     UserDBService userDBService;
     TaskQueue pendingTasks;
 
+    udp::resolver *resolver;
+    udp::endpoint *server_endpoint;
+
     void processWorker(Worker &worker);
 
     void processClient(Client &client);

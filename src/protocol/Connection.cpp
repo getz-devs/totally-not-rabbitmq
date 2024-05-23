@@ -8,7 +8,6 @@
 #include "protocol/errors/STIP_errors.h"
 #include <future>
 
-
 namespace STIP {
 
     Connection::Connection(udp::endpoint &endpoint, udp::socket *socket) {
@@ -18,7 +17,6 @@ namespace STIP {
         this->sessionManager = new SessionManager();
     }
 
-
     void Connection::addPacket(const STIP_PACKET &packet) {
         std::lock_guard<std::mutex> lock(mtx);
         packetQueue.push(packet);
@@ -26,7 +24,6 @@ namespace STIP {
         cv.notify_one();
         std::cout << "Packet added to queue" << std::endl;
     }
-
 
     STIP_PACKET Connection::getPacket(bool &result) {
         std::unique_lock<std::mutex> lock(mtx);
@@ -95,7 +92,6 @@ namespace STIP {
         // TODO: Add timeout and  error handling !!! (next time i'll finished this part)
     }
 
-
     bool Connection::sendMessage(void *data, size_t size) {
         uint32_t session_id = sessionManager->generateSessionId();
         auto *session = new SendMessageSession(session_id, data, size, socket, endpoint);
@@ -131,9 +127,6 @@ namespace STIP {
             return false;
         }
 
-
-
-
         // Send data
         session->sendData();
 
@@ -162,7 +155,6 @@ namespace STIP {
         delete session;
         return true;
     }
-
 
     bool Connection::sendMessage(const std::string &message) {
         return sendMessage((void *) message.c_str(), message.size());

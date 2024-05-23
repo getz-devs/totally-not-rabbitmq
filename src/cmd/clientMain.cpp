@@ -136,6 +136,8 @@ int main(int argc, const char *argv[]) {
     RabbitClient client(id, host, port);
     client.init();
 
+    client.testMessage("Hello from client!");
+
     pthread_t receiverThreadId, senderThreadId;
     pthread_create(&receiverThreadId, nullptr, receiverThread, &client);
     pthread_create(&senderThreadId, nullptr, senderThread, &client);

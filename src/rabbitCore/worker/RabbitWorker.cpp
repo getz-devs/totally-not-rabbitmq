@@ -74,7 +74,7 @@ void RabbitWorker::init() {
 void RabbitWorker::startPolling() {
     for (;;) {
         STIP::ReceiveMessageSession *received = connection->receiveMessage();
-        json request = received->getDataAsString();
+        json request = json::parse(received->getDataAsString());
         json data = request["data"];
         int taskCores = request["cores"];
 //        int func = request["func"];

@@ -232,8 +232,6 @@ namespace STIP {
 
 //    void sendAnswer(udp::socket &socket, udp::endpoint &endpoint, void *data, size_t size);
 
-        void waitAprroval();
-
         /// \brief Получение статуса
         ///
         /// \return статус
@@ -243,6 +241,12 @@ namespace STIP {
         ///
         /// \return строка данных
         std::string getDataAsString();
+
+        /// \brief Получение указателя и размера данных
+        ///
+        /// \return указатель и размер
+        std::pair<void *, size_t> getData();
+
         bool dispatched = false;
     private:
         std::mutex mtx;

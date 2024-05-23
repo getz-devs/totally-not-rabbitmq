@@ -253,6 +253,10 @@ namespace STIP {
         return result;
     }
 
+    std::pair<void *, size_t> ReceiveMessageSession::getData() {
+        return {data, size};
+    }
+
     void ReceiveMessageSession::processIncomingPacket(STIP_PACKET packet) {
         STIP_PACKET packet_response[1] = {};
         switch (packet.header.command) {

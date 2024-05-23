@@ -20,11 +20,12 @@ namespace STIP {
                 return nullptr;
 //            throw boost::system::system_error(error);
             }
+#ifdef STIP_PROTOCOL_DEBUG
             std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port()
                       << std::endl;
 
             std::cout << "Command: " << packet[0].header.command << "\n" << std::endl;
-
+#endif
             STIP_PACKET response[1] = {};
             Connection *connection = nullptr;
             switch (packet[0].header.command) {

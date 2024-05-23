@@ -148,6 +148,13 @@ namespace STIP {
         /// \return возвращает true
         bool initSend();
 
+        /// \brief Инициализация отправки с таймаутом
+        ///
+        /// \param timeout_result - сообщает программе, что произошел таймаут
+        /// \param timeout - время таймаута
+        /// \return возвращает true, если сообщение отправлено. Или false, если сервер отменил прием
+        bool initSendWrappedTimout(bool &timeout_result, int timeout, int retry_count);
+
         /// \brief Отправка данных
         ///
         /// Отправка данных по частям
@@ -155,19 +162,27 @@ namespace STIP {
         /// \return возвращает true
         bool sendData();
 
+        /// \brief Ожидание подтверждения с таймаутом. Или же произошла просьба перепосылки
+        ///
+        /// \param timeout_result
+        /// \param timeout
+        /// \param retry_count
+        /// \return успех подтверждения
+        bool waitApprovalWrappedTimout(bool &timeout_result, int timeout, int retry_count);
+
         /// \brief Ожидание подтверждения ?
         ///
         /// Ожидание подтверждения
         ///
         /// \return возвращает статус 5
-        bool waitApproval();
+        SendMessageStatuses waitApproval();
 
         void cancel();
 
     private:
         std::mutex mtx;
         std::condition_variable cv;
-        bool _cancaled = false; // TODO remove this, bcs it could be in status
+        bool _cancaled = false;
 
         void *data = nullptr;
         size_t size = 0;
@@ -183,7 +198,12 @@ namespace STIP {
         /// Копирование части данных в пакет, отправка пакета
         ///
         /// \param packet_id - идентификатор пакета
-        void sendPart(size_t packet_id);
+        void sendPart(uint32_t packet_id);
+
+        void doResend(STIP_PACKET &packet);
+
+        /// \brief Спрашиваем у сервера получил ли тот все пакеты
+        void askAllReceived();
     };
 
 // ------------------------------------------------ ReceiveMessageSession.h ------------------------------------------------
@@ -212,8 +232,6 @@ namespace STIP {
 
 //    void sendAnswer(udp::socket &socket, udp::endpoint &endpoint, void *data, size_t size);
 
-        void waitAprroval();
-
         /// \brief Получение статуса
         ///
         /// \return статус
@@ -224,6 +242,12 @@ namespace STIP {
         /// \return строка данных
         std::string getDataAsString();
 
+        /// \brief Получение указателя и размера данных
+        ///
+        /// \return указатель и размер
+        std::pair<void *, size_t> getData();
+
+        bool dispatched = false;
     private:
         std::mutex mtx;
         std::condition_variable cv;

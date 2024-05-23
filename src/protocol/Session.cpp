@@ -14,7 +14,7 @@ namespace STIP {
 // ------------------------------------------------ PingSession.h ------------------------------------------------
 
     void PingSession::processIncomingPacket(STIP_PACKET packet) {
-        if (packet.header.command != Command::PING_ANSWER ) {
+        if (packet.header.command != Command::PING_ANSWER) {
             return;
         }
         std::cout << "PingSession processIncomingPacket" << std::endl;
@@ -101,29 +101,47 @@ namespace STIP {
 
         std::unique_lock<std::mutex> lock(mtx);
         status = SendMessageStatuses::INIT;
-        cv.wait(lock, [this] { return status == SendMessageStatuses::INIT_RESPONSE_SUCCESS || status == SendMessageStatuses::INIT_RESPONSE_FAILURE || _cancaled; });
+        cv.wait(lock, [this] {
+            return status == SendMessageStatuses::INIT_RESPONSE_SUCCESS ||
+                   status == SendMessageStatuses::INIT_RESPONSE_FAILURE || _cancaled;
+        });
         return status == SendMessageStatuses::INIT_RESPONSE_SUCCESS;
     }
 
-    bool SendMessageSession::initSendWrappedTimout(bool &timeout_result, int timeout) {
+    bool SendMessageSession::initSendWrappedTimout(bool &timeout_result, int timeout, int retry_count) {
 
-        // use future wait
         timeout_result = false;
-        std::future<bool> response_future = std::async(std::launch::async, [this]() {
-            return initSend();
-        });
-        std::future_status status;
 
-        do {
-            switch (status = response_future.wait_for(std::chrono::milliseconds(timeout)); status) {
-                case std::future_status::timeout:
-                    this->cancel();
-                    timeout_result = true;
-                    break;
+
+        for (int i = 0; i < retry_count; i++) {
+            bool timeout_this_try = false;
+
+
+            std::future<bool> response_future = std::async(std::launch::async, [this]() {
+                return initSend();
+            });
+            std::future_status status;
+
+            do {
+                switch (status = response_future.wait_for(std::chrono::milliseconds(timeout)); status) {
+                    case std::future_status::timeout:
+                        this->cancel();
+                        timeout_this_try = true;
+                        break;
+                }
+            } while (status == std::future_status::deferred);
+
+            if (timeout_this_try) {
+                response_future.wait();
+                _cancaled = false;
+                std::cout << "[RETRY INIT] Timeout elapsed. Try " << i + 1 << std::endl;
+                continue;
             }
-        } while (status == std::future_status::deferred);
 
-        return response_future.get();
+            return response_future.get();
+        }
+        timeout_result = true;
+        return false;
     }
 
     bool SendMessageSession::sendData() {
@@ -150,14 +168,17 @@ namespace STIP {
 
     SendMessageStatuses SendMessageSession::waitApproval() {
         std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] { return (status == DATA_RESPONSE_SUCCESS) || (status == DATA_RESPONSE_FAILURE) || ( status == DATA_RESPONSE_RESEND)|| _cancaled; });
+        cv.wait(lock, [this] {
+            return (status == DATA_RESPONSE_SUCCESS) || (status == DATA_RESPONSE_FAILURE) ||
+                   (status == DATA_RESPONSE_RESEND) || _cancaled;
+        });
         if (status == DATA_RESPONSE_RESEND) {
             status = SendMessageStatuses::DATA_REQEUST_SENT;
         }
         return status;
     }
 
-    bool SendMessageSession::waitApprovalWrappedTimout(bool &timeout_result, int timeout, int retry_count){
+    bool SendMessageSession::waitApprovalWrappedTimout(bool &timeout_result, int timeout, int retry_count) {
         timeout_result = false;
 
         for (int i = 0; i < retry_count; i++) {
@@ -181,7 +202,7 @@ namespace STIP {
             if (timeout_1_try) {
                 response_future.wait();
                 _cancaled = false;
-                std::cout << "[RETRY] Timeout elapsed. Try " << i+1 << std::endl;
+                std::cout << "[RETRY] Timeout elapsed. Try " << i + 1 << std::endl;
                 continue;
             }
 
@@ -239,11 +260,14 @@ namespace STIP {
                 if (packet.header.session_id != id) {
                     return;
                 }
-                size = *(size_t *) packet.data;
-                packet_counts = (size + MAX_STIP_DATA_SIZE - 1) / MAX_STIP_DATA_SIZE;
-                data = malloc(size);
-                receivedParts.resize(packet_counts);
-                status = 1;
+
+                if (status == -1) {
+                    size = *(size_t *) packet.data;
+                    packet_counts = (size + MAX_STIP_DATA_SIZE - 1) / MAX_STIP_DATA_SIZE;
+                    data = malloc(size);
+                    receivedParts.resize(packet_counts);
+                    status = 1;
+                }
 
                 packet_response[0].header.command = Command::MSG_INIT_RESPONSE_SUCCESS;
                 packet_response[0].header.session_id = id;
@@ -287,7 +311,7 @@ namespace STIP {
                     packet_response[0].header.session_id = id;
 
                     packet_response[0].header.packet_id = unreceived;
-                    packet_response[0].header.size = sizeof(STIP_HEADER) + sizeof(uint32_t)*unreceived;
+                    packet_response[0].header.size = sizeof(STIP_HEADER) + sizeof(uint32_t) * unreceived;
 
                     // fill data
                     uint32_t temp_data[unreceived];
@@ -298,7 +322,7 @@ namespace STIP {
                             pos++;
                         }
                     }
-                    memcpy(packet_response[0].data, temp_data, sizeof(uint32_t)*unreceived);
+                    memcpy(packet_response[0].data, temp_data, sizeof(uint32_t) * unreceived);
                     socket->send_to(boost::asio::buffer(packet_response, packet_response[0].header.size), endpoint);
                 }
                 break;

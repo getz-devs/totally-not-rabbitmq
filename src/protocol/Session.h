@@ -153,7 +153,7 @@ namespace STIP {
         /// \param timeout_result - сообщает программе, что произошел таймаут
         /// \param timeout - время таймаута
         /// \return возвращает true, если сообщение отправлено. Или false, если сервер отменил прием
-        bool initSendWrappedTimout(bool &timeout_result, int timeout);
+        bool initSendWrappedTimout(bool &timeout_result, int timeout, int retry_count);
 
         /// \brief Отправка данных
         ///
@@ -182,7 +182,7 @@ namespace STIP {
     private:
         std::mutex mtx;
         std::condition_variable cv;
-        bool _cancaled = false; 
+        bool _cancaled = false;
 
         void *data = nullptr;
         size_t size = 0;

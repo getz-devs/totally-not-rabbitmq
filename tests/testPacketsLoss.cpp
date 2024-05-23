@@ -99,6 +99,20 @@ public:
                     }
                 }
 
+                if (test_3_skip_command__0) {
+                    if (test_skip_counter < test_skip_target_count) {
+                        // read command to int
+                        int command = *(int *) &recv_buffer_[0];
+                        std::cout << "[Proxy] Skip command: " << command << std::endl;
+                        if (command == 0) {
+                            test_skip_counter++;
+                            continue;
+                        }
+                    } else {
+                        test_3_skip_command__0 = false;
+                    }
+                }
+
                 // Определение направления и пересылка данных
                 if (remote_endpoint == client_endpoint_) {
                     // Данные от клиента к серверу
@@ -169,6 +183,18 @@ public:
         test_skip_target_count = 0;
     }
 
+    void runTest_3(int target_count) {
+        test_3_skip_command__0 = true;
+        test_skip_counter = 0;
+        test_skip_target_count = target_count;
+    }
+
+    void stopTest_3() {
+        test_3_skip_command__0 = false;
+        test_skip_counter = 0;
+        test_skip_target_count = 0;
+    }
+
     ~UdpProxy() {
         async_stop();
     }
@@ -192,6 +218,7 @@ private:
     int test_skip_target_count;
 
     bool test_2_skip_command__4 = false;
+    bool test_3_skip_command__0 = false;
 };
 
 TEST(TestGroupName, Subtest_1) {
@@ -373,6 +400,86 @@ TEST(Protocol, MessageTransferingWithProxyDropAprovePackets) {
     UdpProxy proxy(DEF_CLIENT_PORT, DEF_SERVER_PORT, DEF_PROXY_PORT);
     proxy.setDelay(300);
     proxy.runTest_2(2);
+    // sleep 200 ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    proxy.async_start();
+
+    // subthread for server
+
+    std::string test_string = "Hello, I'm Ilya";
+
+    boost::asio::io_context io_context_server;
+
+    udp::socket socket_server(io_context_server, server_endpoint);
+    STIPServer server(socket_server);
+
+    std::vector<thread> threadsProcessors;
+    std::thread serverThread([&server, &test_string, &threadsProcessors] {
+
+        for (;;) {
+            Connection *serverconnection = server.acceptConnection();
+            if (serverconnection == nullptr) break;
+            std::cout << "Connection accepted\n\n" << std::endl;
+
+            // processing should be in separate thread
+            threadsProcessors.emplace_back([&serverconnection, &test_string] {
+                ReceiveMessageSession *received = serverconnection->receiveMessage();
+                std::string receivedMessage = received->getDataAsString();
+                std::cout << "[SERVER THREAD] Received message: " << receivedMessage << endl;
+                ASSERT_EQ(receivedMessage, test_string);
+            });
+        }
+        for (auto &th : threadsProcessors) th.join();
+
+        cout << "Server thread finished" << endl;
+    });
+
+
+
+    // sleep 200ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // client thread
+
+    boost::asio::io_context io_context;
+
+
+
+    udp::socket socket(io_context);
+    socket.open(udp::v4());
+    socket.bind(client_endpoint);
+
+    STIPClient client(socket);
+    client.startListen();
+
+    Connection *connection = client.connect(proxy_endpoint);
+    std::cout << "Connection accepted\n\n" << std::endl;
+
+    ASSERT_TRUE(connection->sendMessage(test_string));
+
+    cout << "\n\nMessage sent\n\n" << endl;
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    socket_server.cancel();
+    serverThread.join();
+    socket_server.close();
+
+    client.stopListen();
+
+    proxy.async_stop();
+}
+
+TEST(Protocol, MessageTransferingWithProxyDropInitPackets) {
+    boost::asio::io_context io_contextProxy;
+
+    udp::endpoint server_endpoint = udp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), DEF_SERVER_PORT);
+    udp::endpoint client_endpoint = udp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), DEF_CLIENT_PORT);
+    udp::endpoint proxy_endpoint = udp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), DEF_PROXY_PORT);
+
+    UdpProxy proxy(DEF_CLIENT_PORT, DEF_SERVER_PORT, DEF_PROXY_PORT);
+    proxy.setDelay(300);
+    proxy.runTest_3(2);
     // sleep 200 ms
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     proxy.async_start();

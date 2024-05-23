@@ -106,7 +106,7 @@ namespace STIP {
         bool totalResult = true;
         try {
             bool resultTimout = false;
-            bool initSendResult = session->initSendWrappedTimout(resultTimout, 1000);
+            bool initSendResult = session->initSendWrappedTimout(resultTimout, 1000, 3);
             if (resultTimout) {
                 throw STIP::errors::STIPTimeoutException("No response for init message");
             }

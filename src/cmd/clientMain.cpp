@@ -53,12 +53,15 @@ std::string promptMatrixDeterminantTask() {
         for (int j = 0; j < matrixSize; j++) {
             std::vector<int> row;
             for (int k = 0; k < matrixSize; k++) {
-                row.push_back(rand() % 100);
+                row.push_back(int(rand() % 100));
             }
             matrix.push_back(row);
         }
         matrices.push_back(matrix);
     }
+
+    // размер кол-во элемент элемент
+    // 10     100    23 23 23 23
 
     json data = json::array();
     for (auto &matrix: matrices) {
@@ -81,12 +84,14 @@ void *receiverThread(void *arg) {
     return nullptr;
 }
 
+
 void *senderThread(void *arg) {
     auto *client = static_cast<RabbitClient *>(arg);
     while (true) {
         std::cout << "Enter task number:" << std::endl;
         std::cout << "1 - simple math" << std::endl;
         std::cout << "2 - matrix multiplication" << std::endl;
+        std::cout << "3 - bulk simple task" << std::endl;
         std::cout << "0 - exit console" << std::endl;
         std::cout << "> ";
 
@@ -115,6 +120,29 @@ void *senderThread(void *arg) {
                     requestFunc = "determinant";
                     break;
 
+                case 3:
+                    int t, tasksCount, delay;
+                    std::cout << "Enter tasks count:" << std::endl;
+                    std::cout << "> ";
+                    std::cin >> tasksCount;
+                    std::cout << "Enter delay between tasks:" << std::endl;
+                    std::cout << "> ";
+                    std::cin >> delay;
+
+                    for (t = 0; t < tasksCount; t++) {
+                        json data;
+                        data["a"] = rand() % 100;
+                        data["b"] = rand() % 100;
+                        int taskId = rand();
+                        client->sendTask(TaskRequest{std::to_string(taskId), "simpleMath", data.dump(), cores});
+                        std::cout << "Task " << taskId << " sent" << std::endl;
+                        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+                    }
+
+                    requestParams = promptMatrixDeterminantTask();
+                    requestFunc = "determinant";
+                    break;
+
                 case 0:
                     return nullptr;
 
@@ -123,7 +151,7 @@ void *senderThread(void *arg) {
                     continue;
             }
 
-            TaskRequest tr{"0", requestFunc, requestParams, cores};
+            TaskRequest tr{std::to_string(rand()), requestFunc, requestParams, cores};
             client->sendTask(tr);
         } catch (const std::runtime_error &e) {
             std::cout << "Error: " << e.what() << std::endl;

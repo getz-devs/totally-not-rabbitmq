@@ -116,7 +116,7 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 void RabbitServer::processWorker(Worker &worker) {
     for (;;) {
         auto receiveMessage = worker.connection->receiveMessage();
-        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
+//        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
         json request = json::parse(receiveMessage->getDataAsString());
         std::cout << "Received message: " << request.dump() << std::endl;
         Message message;
@@ -146,13 +146,8 @@ void RabbitServer::processWorker(Worker &worker) {
                 task.output = result.data;
 
                 taskService.updateTask(task);
-                std::cout << logTime() << "Update cores: Worker before has used cores: " << worker.usedCores << std::endl;
-                std::cout << logTime() << "Task cores: " << task.cores << std::endl;
-                worker.usedCores = worker.usedCores - task.cores;
-                std::cout << logTime() << "Update cores: decrease " << task.cores << std::endl;
-                userDBService.updateWorker(worker);
-                std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores
-                          << std::endl;
+                userDBService.modifyWorkerUsedCores(task.worker_hash_id, task.cores, false);
+                Worker workerFromDB = userDBService.findWorkerByID(task.worker_hash_id);
 
                 Client client = userDBService.findClientByID(task.client_hash_id);
 
@@ -161,7 +156,13 @@ void RabbitServer::processWorker(Worker &worker) {
                         message.data
                 };
 
-                client.connection->sendMessage(json(result_message).dump());
+                try {
+                    client.connection->sendMessage(json(result_message).dump());
+                } catch (json::exception &e) {
+                    std::cerr << logTime() << "Error sending task result to client: " << e.what() << std::endl;
+                    continue;
+                }
+
                 std::cout << logTime() << "Sent TaskResult to client: " << client.id << std::endl;
 
                 checkTaskQueue(worker);
@@ -248,14 +249,22 @@ void RabbitServer::checkTaskQueue(Worker &worker) {
         message.data = task_json;
 
         // update worker
-        worker.usedCores += pendingTask.cores;
-        std::cout << logTime() << "Update cores: increase " << pendingTask.cores << std::endl;
-        userDBService.updateWorker(worker);
-        std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores
-                  << std::endl;
+        userDBService.modifyWorkerUsedCores(worker.id, pendingTask.cores, true);
 
-        json message_json = message;
-        worker.connection->sendMessage(message_json.dump());
+//        worker.usedCores += pendingTask.cores;
+//        std::cout << logTime() << "Update cores: increase " << pendingTask.cores << std::endl;
+//        userDBService.updateWorker(worker);
+//        std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores
+//                  << std::endl;
+
+        try {
+            json message_json = message;
+            std::string strToSend = json(message_json).dump();
+            worker.connection->sendMessage(strToSend);
+        } catch (json::exception &e) {
+            std::cerr << logTime() << "[checkTaskQueue] Error sending task to worker: " << e.what() << std::endl;
+            return;
+        }
 
         std::cout << logTime() << "Task " << pendingTask.id << " sent to worker " << worker.id << std::endl;
     }
@@ -278,11 +287,12 @@ void RabbitServer::processTask(Task &task) {
     taskService.updateTask(task);
 
     // update worker
-    worker.usedCores += task.cores;
-    std::cout << logTime() << "Update cores: increase " << task.cores << std::endl;
-    userDBService.updateWorker(worker);
-    std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores << std::endl;
+    userDBService.modifyWorkerUsedCores(worker.id, task.cores, true);
 
+//    worker.usedCores += task.cores;
+//    std::cout << logTime() << "Update cores: increase " << task.cores << std::endl;
+//    userDBService.updateWorker(worker);
+//    std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores << std::endl;
 
     struct TaskRequest taskRequest = {
             task.id,
@@ -296,7 +306,13 @@ void RabbitServer::processTask(Task &task) {
             json(taskRequest).dump()
     };
 
-    worker.connection->sendMessage(json(message).dump());
+    try {
+        std::string strToSend = json(message).dump();
+        worker.connection->sendMessage(strToSend);
+    } catch (json::exception &e) {
+        std::cerr << logTime() << "[processTask] Error sending task to worker: " << e.what() << std::endl;
+        return;
+    }
     std::cout << logTime() << "Task " << task.id << " sent to worker " << worker.id << std::endl;
 }
 

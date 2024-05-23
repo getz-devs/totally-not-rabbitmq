@@ -20,7 +20,8 @@ using boost::asio::ip::udp;
 //typedef std::map<std::string, func_type> func_map_type;
 
 RabbitWorker::RabbitWorker(std::string id, std::string host, int port, int cores) {
-    std::cout << "RabbitWorker::RabbitWorker - Initializing with id: " << id << ", host: " << host << ", port: " << port << ", cores: " << cores << std::endl;
+    std::cout << "RabbitWorker::RabbitWorker - Initializing with id: " << id << ", host: " << host << ", port: " << port
+              << ", cores: " << cores << std::endl;
     this->id = std::move(id);
     this->host = std::move(host);
     this->port = port;
@@ -130,7 +131,7 @@ void RabbitWorker::doWait(int seconds) {
 int RabbitWorker::simpleMath(int a, int b) {
     std::cout << "RabbitWorker::simpleMath - Adding " << a << " + " << b << std::endl;
     int c = a + b;
-    std::this_thread::sleep_for(std::chrono::seconds(c));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     std::cout << "RabbitWorker::simpleMath - Result is " << c << std::endl;
     return c;
 }

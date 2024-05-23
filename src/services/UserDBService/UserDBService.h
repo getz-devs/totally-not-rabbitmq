@@ -31,12 +31,15 @@ public:
 
     Worker findMostFreeWorker(int cores);
 
-    void printLog();
+    void modifyWorkerUsedCores(const std::string &id, int cores, bool increase);
 
+    void printLog();
 
 private:
     std::vector<Client> clients;
     std::vector<Worker> workers;
+
+    void saveStateToFile(const std::string &filename);
 };
 
 #endif //RABBIT_USERDBSERVICE_H

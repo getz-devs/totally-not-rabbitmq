@@ -16,9 +16,11 @@ public:
 
     void changeTaskStatus(const std::string &id, TaskStatus status);
 
-    void updateTask(const Task& task);
+    void updateTask(const Task &task);
 
     Task findTaskByID(std::string id);
+
+    void saveTasksToFile(const std::string &filename);
 
 private:
     std::vector<Task> tasks;

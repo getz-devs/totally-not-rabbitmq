@@ -3,6 +3,8 @@
 //
 
 #include "TaskService.h"
+#include <fstream>
+#include <sstream>
 
 
 TaskService::TaskService() {
@@ -16,12 +18,16 @@ void TaskService::addTask(Task task) {
     }
     task.status = TaskStatus::Queued;
     tasks.push_back(task);
+    saveTasksToFile("tasks.md");
+
 }
 
-void TaskService::updateTask(const Task& task) {
+void TaskService::updateTask(const Task &task) {
     for (auto &t: tasks) {
         if (t.id == task.id) {
             t = task;
+            saveTasksToFile("tasks.md");
+
             return;
         }
     }
@@ -32,6 +38,7 @@ void TaskService::changeTaskStatus(const std::string &id, TaskStatus status) {
     for (auto &task: tasks) {
         if (task.id == id) {
             task.status = status;
+            saveTasksToFile("tasks.md");
             return;
         }
     }
@@ -49,4 +56,22 @@ Task TaskService::findTaskByID(std::string id) {
         }
     }
     throw std::runtime_error("Task not found");
+}
+
+void TaskService::saveTasksToFile(const std::string &filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file");
+    }
+
+    // Write the header
+    file << "| Task ID | Status | Description | Worker |\n";
+    file << "|---------|--------|-------------|--------|\n";
+
+    // Write each task as a row
+    for (const auto &task: tasks) {
+        file << "| " << task.id << " | " << static_cast<int>(task.status) << " | " << task.func << " | " << task.worker_hash_id << " |\n";
+    }
+
+    file.close();
 }

@@ -26,10 +26,9 @@ RabbitWorker::RabbitWorker(std::string id, std::string host, int port, int cores
 }
 
 void RabbitWorker::init() {
-    boost::asio::io_context io_context;
-
-    udp::resolver resolver(io_context);
-    udp::endpoint server_endpoint = *resolver.resolve(udp::v4(), host, std::to_string(port)).begin();
+    resolver = new udp::resolver(io_context);
+    auto endpoints = resolver->resolve(udp::v4(), host, std::to_string(port));
+    server_endpoint = new udp::endpoint(*endpoints.begin());
 
     server_socket = new udp::socket(io_context);
     server_socket->open(udp::v4());
@@ -37,7 +36,7 @@ void RabbitWorker::init() {
     client = new STIP::STIPClient(*server_socket);
     client->startListen();
 
-    connection = client->connect(server_endpoint);
+    connection = client->connect(*server_endpoint);
 
     mapping["simpleMath"] = &RabbitWorker::simpleMathHandler;
     mapping["determinant"] = &RabbitWorker::determinantHandler;

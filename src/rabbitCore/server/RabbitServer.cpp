@@ -6,6 +6,7 @@
 #include "protocol/Connection.h"
 #include "DataModel/Message.h"
 #include "RabbitServer.h"
+#include "TaskRequest.h"
 #include <queue>
 #include <iomanip> // For std::put_time
 
@@ -68,7 +69,7 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
             try {
                 processClient(client);
             } catch (std::exception &e) {
-                std::cerr << logTime() <<  "Error processing client: " << e.what() << std::endl;
+                std::cerr << logTime() << "Error processing client: " << e.what() << std::endl;
             }
 
             userDBService.removeClient(client);
@@ -114,12 +115,14 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 void RabbitServer::processWorker(Worker &worker) {
     for (;;) {
         auto receiveMessage = worker.connection->receiveMessage();
+        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
         json request = json::parse(receiveMessage->getDataAsString());
+        std::cout << "Received message: " << request.dump() << std::endl;
         Message message;
         json data;
         try {
             message = request.template get<Message>();
-            data = message.data;
+            data = json::parse(message.data);
         } catch (json::exception &e) {
             std::cerr << "Error parsing message: " << e.what() << std::endl;
             continue;
@@ -165,12 +168,14 @@ void RabbitServer::processWorker(Worker &worker) {
 void RabbitServer::processClient(Client &client) {
     for (;;) {
         auto receiveMessage = client.connection->receiveMessage();
+        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
         json request = json::parse(receiveMessage->getDataAsString());
+        std::cout << "Received message: " << request.dump() << std::endl;
         Message message;
         json data;
         try {
             message = request.template get<Message>();
-            data = message.data;
+            data = json::parse(message.data);
         } catch (json::exception &e) {
             std::cerr << "Error parsing message: " << e.what() << std::endl;
             continue;
@@ -179,16 +184,33 @@ void RabbitServer::processClient(Client &client) {
         switch (message.action) {
             case MessageType::TaskRequest: {
                 std::cout << logTime() << "Received TaskRequest from client: " << client.id << std::endl;
-                Task task;
+                struct TaskRequest taskRequest;
                 try {
-                    task = data.template get<Task>();
-                    std::cout << logTime() << "Task added: " << task.id << " (Cores: " << task.cores << ")" << std::endl;
+                    std::cout << "Task data: " << data.dump() << std::endl;
+                    taskRequest = data.template get<struct TaskRequest>();
+                    std::cout << logTime() << "Task added: " << taskRequest.id << " (Cores: " << taskRequest.cores
+                              << ")"
+                              << std::endl;
                 } catch (json::exception &e) {
-                    std::cerr << logTime() <<  "Error parsing task: " << e.what() << std::endl;
+                    std::cerr << logTime() << "Error parsing task: " << e.what() << std::endl;
                     break;
                 }
-                taskService.addTask(task);
-                std::thread(&RabbitServer::processTask, this, std::ref(task)).detach();
+                Task task = {
+                        taskRequest.id,
+                        taskRequest.func,
+                        taskRequest.data,
+                        "",
+                        taskRequest.cores,
+                        TaskStatus::Queued,
+                        "",
+                        client.id
+                };
+                try {
+                    taskService.addTask(task);
+                    std::thread(&RabbitServer::processTask, this, std::ref(task)).detach();
+                } catch (std::exception &e) {
+                    std::cerr << logTime() << "Error processing task: " << e.what() << std::endl;
+                }
                 break;
             }
 
@@ -234,7 +256,7 @@ void RabbitServer::processTask(Task &task) {
     Message message;
     message.action = MessageType::TaskRequest;
     json task_json = task;
-    message.data = task_json;
+    message.data = task_json.dump();
 
     json message_json = message;
     worker.connection->sendMessage(message_json.dump());

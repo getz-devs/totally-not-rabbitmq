@@ -101,17 +101,3 @@ void RabbitClient::sendTask(struct TaskRequest t) {
     json message = m;
     connection->sendMessage(message.dump());
 }
-
-void RabbitClient::testMessage(std::string msg) {
-    try {
-        Message test = {
-                MessageType::Invalid,
-                msg
-        };
-        json testJson = test;
-        connection->sendMessage(testJson.dump());
-    } catch (std::exception e) {
-        std::cerr << "Error sending Test message: " << e.what() << std::endl;
-        return;
-    }
-}

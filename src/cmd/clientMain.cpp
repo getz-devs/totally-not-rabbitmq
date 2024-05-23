@@ -12,16 +12,30 @@
 std::string promptSimpleMathTask() {
     json data;
     int num;
+
     std::cout << "Enter number one:" << std::endl;
     std::cout << "> ";
     std::cin >> num;
+    if (std::cin.fail()) {
+        std::cin.clear(); // Clear the error flag
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore invalid input
+        throw std::runtime_error("Invalid input for number one.");
+    }
     data["a"] = num;
+
     std::cout << "Enter number two:" << std::endl;
     std::cout << "> ";
     std::cin >> num;
+    if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        throw std::runtime_error("Invalid input for number two.");
+    }
     data["b"] = num;
+
     return data.dump();
 }
+
 
 std::string promptMatrixDeterminantTask() {
     int matrixSize, matrixCount;
@@ -78,31 +92,42 @@ void *senderThread(void *arg) {
 
         int taskNum;
         std::cin >> taskNum;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid input. Please enter a valid task number." << std::endl;
+            continue;
+        }
+
         std::string requestFunc;
         std::string requestParams;
         int cores = 1;
 
-        switch (taskNum) {
-            case 1:
-                requestParams = promptSimpleMathTask();
-                requestFunc = "simpleMath";
-                break;
+        try {
+            switch (taskNum) {
+                case 1:
+                    requestParams = promptSimpleMathTask();
+                    requestFunc = "simpleMath";
+                    break;
 
-            case 2:
-                requestParams = promptMatrixDeterminantTask();
-                requestFunc = "determinant";
-                break;
+                case 2:
+                    requestParams = promptMatrixDeterminantTask();
+                    requestFunc = "determinant";
+                    break;
 
-            case 0:
-                return nullptr;
+                case 0:
+                    return nullptr;
 
-            default:
-                std::cout << "Unknown task number" << std::endl;
-                break;
+                default:
+                    std::cout << "Unknown task number" << std::endl;
+                    continue;
+            }
+
+            TaskRequest tr{"0", requestFunc, requestParams, cores};
+            client->sendTask(tr);
+        } catch (const std::runtime_error &e) {
+            std::cout << "Error: " << e.what() << std::endl;
         }
-
-        TaskRequest tr{0, requestFunc, requestParams, cores};
-        client->sendTask(tr);
     }
     return nullptr;
 }
@@ -135,8 +160,6 @@ int main(int argc, const char *argv[]) {
     int port = program.get<int>("--port");
     RabbitClient client(id, host, port);
     client.init();
-
-    client.testMessage("Hello from client!");
 
     pthread_t receiverThreadId, senderThreadId;
     pthread_create(&receiverThreadId, nullptr, receiverThread, &client);

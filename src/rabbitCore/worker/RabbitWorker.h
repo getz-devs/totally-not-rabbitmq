@@ -45,6 +45,9 @@ private:
     int cores;
     STIP::Connection *connection{};
 
+    udp::resolver *resolver;
+    udp::endpoint *server_endpoint;
+
     boost::asio::io_context io_context;
     udp::socket *server_socket{};
 

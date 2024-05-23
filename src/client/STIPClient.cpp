@@ -30,9 +30,10 @@ namespace STIP {
                 return;
 //            throw boost::system::system_error(error);
             }
+#ifdef STIP_PROTOCOL_DEBUG
             std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port()
                       << std::endl;
-
+#endif
             connectionManager->accept(remote_endpoint, packet[0]);
         }
     }
@@ -71,14 +72,13 @@ namespace STIP {
             }
         } while (status == std::future_status::deferred);
 
-        if (response_future.get()) {
-            initPacket[0].header.command = Command::CONNECTION_ACK;
-            initPacket[0].header.size = sizeof(int);
-            this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
-            connection->setConnectionStatus(102);
-            connection->startProcessing();
-            return connection;
-        }
+        response_future.wait();
+        initPacket[0].header.command = Command::CONNECTION_ACK;
+        initPacket[0].header.size = sizeof(int);
+        this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
+        connection->setConnectionStatus(102);
+        connection->startProcessing();
+        return connection;
     }
 
     Connection *STIPClient::connect(udp::endpoint &targetEndpoint) {

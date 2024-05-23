@@ -6,7 +6,6 @@
 #define RABBIT_RABBITSERVER_H
 
 #include <boost/asio.hpp>
-#include <sqlite_orm/sqlite_orm.h>
 #include "protocol/Connection.h"
 #include "services/TaskService/TaskService.h"
 #include "services/UserDBService/UserDBService.h"
@@ -14,7 +13,6 @@
 #include <nlohmann/json.hpp>
 
 using boost::asio::ip::udp;
-using namespace sqlite_orm;
 using json = nlohmann::json;
 
 class RabbitServer {

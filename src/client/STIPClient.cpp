@@ -72,14 +72,13 @@ namespace STIP {
             }
         } while (status == std::future_status::deferred);
 
-        if (response_future.get()) {
-            initPacket[0].header.command = Command::CONNECTION_ACK;
-            initPacket[0].header.size = sizeof(int);
-            this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
-            connection->setConnectionStatus(102);
-            connection->startProcessing();
-            return connection;
-        }
+        response_future.wait();
+        initPacket[0].header.command = Command::CONNECTION_ACK;
+        initPacket[0].header.size = sizeof(int);
+        this->socket->send_to(boost::asio::buffer(initPacket, initPacket[0].header.size), targetEndpoint);
+        connection->setConnectionStatus(102);
+        connection->startProcessing();
+        return connection;
     }
 
     Connection *STIPClient::connect(udp::endpoint &targetEndpoint) {

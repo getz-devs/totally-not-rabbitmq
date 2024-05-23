@@ -4,21 +4,16 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
-
-#include "protocol/STIP.h"
 #include "protocol/Session.h"
 #include "protocol/Connection.h"
 #include "server/STIPServer.h"
 #include "client/STIPClient.h"
-#include "protocol/STIPVersion.h"
-#include <iostream>
+
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <thread>
 #include <random>
-
 #include "protocol/errors/STIP_errors.h"
-#include <boost/bind/bind.hpp>
 #include <utility>
 
 using namespace std;

@@ -48,6 +48,20 @@ add_executable(STIPTest
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
         src/protocol/SessionKiller.cpp
+#        tests/UdpProxy.cpp
+)
+
+add_executable(STIPTestProxy
+        src/server/STIPServer.cpp
+        src/client/STIPClient.cpp
+        src/protocol/Connection.cpp
+        src/protocol/Session.cpp
+        src/protocol/SessionKiller.cpp
+        tests/testPacketsLoss.cpp
+)
+
+add_executable(UdpProxy
+        tests/UdpProxy.cpp
 )
 
 # add sources dir
@@ -97,6 +111,16 @@ target_link_libraries(STIPTest
         GTest::gtest_main
         Boost::asio ws2_32
 )
+
+target_link_libraries(STIPTestProxy
+        GTest::gtest_main
+        Boost::asio ws2_32
+)
+
+target_link_libraries(UdpProxy
+        Boost::asio ws2_32
+)
+
 include(GoogleTest)
-gtest_discover_tests(STIPTest)
+gtest_discover_tests(STIPTest STIPTestProxy)
 

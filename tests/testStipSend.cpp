@@ -13,7 +13,7 @@
 
 
 #include <gtest/gtest.h>
-//#include <gmock/gmock.h>
+
 #include "protocol/errors/STIP_errors.h"
 
 using namespace std;
@@ -23,10 +23,6 @@ TEST(TestGroupName, Subtest_1) {
     ASSERT_TRUE(1 == 1);
 }
 
-//TEST(TestGroupName, Subtest_2) {
-//    ASSERT_FALSE('b' == 'b');
-//    cout << "continue test after failure" << endl;
-//}
 
 TEST(Protocol, PingTest) {
     // subthread for server
@@ -46,7 +42,8 @@ TEST(Protocol, PingTest) {
     });
 
 
-
+    // sleep 200ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     // client thread
 
@@ -69,9 +66,8 @@ TEST(Protocol, PingTest) {
 
 
     socket_server.cancel();
-//    socket.cancel();
-    client.stopListen();
     serverThread.join();
+    client.stopListen();
 }
 
 TEST(Protocol, MessageTransfering) {
@@ -84,27 +80,30 @@ TEST(Protocol, MessageTransfering) {
     udp::socket socket_server(io_context_server, udp::endpoint(udp::v4(), 12223));
     STIPServer server(socket_server);
 
-    std::thread serverThread([&server, &test_string] {
+    std::vector<thread> threadsProcessors;
+    std::thread serverThread([&server, &test_string, &threadsProcessors] {
         for (;;) {
             Connection *serverconnection = server.acceptConnection();
             if (serverconnection == nullptr) break;
             std::cout << "Connection accepted\n\n" << std::endl;
 
             // processing should be in separate thread
-            std::thread([&serverconnection, &test_string] {
+            threadsProcessors.emplace_back([&serverconnection, &test_string] {
                 ReceiveMessageSession *received = serverconnection->receiveMessage();
                 std::string receivedMessage = received->getDataAsString();
-//                receivedMessage = receivedMessage + " modified";
+                std::cout << "[SERVER THREAD] Received message: " << receivedMessage << endl;
                 ASSERT_EQ(receivedMessage, test_string);
                 ASSERT_TRUE(serverconnection->sendMessage(receivedMessage));
                 std::cout << "[SERVER THREAD] Message sent: " << receivedMessage << endl;
-            }).detach();
+            });
         }
         cout << "Server thread finished" << endl;
     });
 
-    // client thread
+    // sleep 200ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
+    // client thread
     boost::asio::io_context io_context;
 
     udp::resolver resolver(io_context);
@@ -128,19 +127,27 @@ TEST(Protocol, MessageTransfering) {
     ASSERT_EQ(received->getDataAsString(), test_string);
     cout << "[MAIN THREAD] Received message: " << received->getDataAsString() << endl;
 
-    socket_server.close();
-    client.stopListen();
+
+    // sleep
+    for (auto &th : threadsProcessors) th.join();
+
+    socket_server.cancel();
     serverThread.join();
+    socket_server.close();
+
+    client.stopListen();
 }
 
 TEST(Protocol, CatchException) {
+    // sleep
+
     // subthread for server
 
     std::string test_string = "Hello, I'm Ilya";
 
     boost::asio::io_context io_context_server;
 
-    udp::socket socket_server(io_context_server, udp::endpoint(udp::v4(), 12224));
+    udp::socket socket_server(io_context_server, udp::endpoint(udp::v4(), 12227));
     STIPServer server(socket_server);
 
 
@@ -149,7 +156,7 @@ TEST(Protocol, CatchException) {
     boost::asio::io_context io_context;
 
     udp::resolver resolver(io_context);
-    udp::endpoint server_endpoint = *resolver.resolve(udp::v4(), "localhost", "12224");
+    udp::endpoint server_endpoint = *resolver.resolve(udp::v4(), "localhost", "12227");
 
     udp::socket socket(io_context);
     socket.open(udp::v4());
@@ -157,10 +164,14 @@ TEST(Protocol, CatchException) {
     STIPClient client(socket);
     client.startListen();
 
+
     EXPECT_THROW(static_cast<void>(client.connect(server_endpoint)), STIP::errors::STIPTimeoutException);
 
-    socket_server.close();
+
+
     client.stopListen();
+    socket_server.close();
+
 //    serverThread.join();
 }
 

@@ -101,66 +101,63 @@ namespace STIP {
         auto *session = new SendMessageSession(session_id, data, size, socket, endpoint);
         sessionManager->addSession(session);
 
-        // use future wait
-        bool timedOut = false;
-        std::future<bool> response_future = std::async(std::launch::async, [session]() {
-            return session->initSend();
-        });
-        std::future_status status;
 
-        do {
-            switch (status = response_future.wait_for(std::chrono::milliseconds(1000)); status) {
-                case std::future_status::timeout:
-                    session->cancel();
-                    timedOut = true;
-                    break;
+        // Send init
+        bool totalResult = true;
+        try {
+            bool resultTimout = false;
+            bool initSendResult = session->initSendWrappedTimout(resultTimout, 1000);
+            if (resultTimout) {
+                throw STIP::errors::STIPTimeoutException("No response for init message");
             }
-        } while (status == std::future_status::deferred);
-
-        if (timedOut) {
-            sessionManager->deleteSession(session);
-            delete session;
-
-            throw STIP::errors::STIPTimeoutException("No response for init message");
-        }
-
-        // Endpoint rejected message (maybe overloaded)
-        if (!response_future.get()) {
-            sessionManager->deleteSession(session);
-            delete session;
-            return false;
-        }
-
-
-
-
-        // Send data
-        session->sendData();
-
-        // wait for approval
-        timedOut = false;
-        std::future<bool> approval_future = std::async(std::launch::async, [session]() {
-            return session->waitApproval();
-        });
-
-        do {
-            switch (status = approval_future.wait_for(std::chrono::milliseconds(5000)); status) {
-                case std::future_status::timeout:
-                    session->cancel();
-                    timedOut = true;
-                    break;
+            if (!initSendResult) {
+                throw STIP::errors::STIPException("Rejected init message");
             }
-        } while (status == std::future_status::deferred);
 
-        if (timedOut) {
-            sessionManager->deleteSession(session);
-            delete session;
 
-            throw STIP::errors::STIPTimeoutException("No response for data message");
+            // Send data
+            session->sendData();
+//            session->
+            // wait for approval
+//        timedOut = false;
+//        std::future<bool> approval_future = std::async(std::launch::async, [session]() {
+//            return session->waitApproval();
+//        });
+//
+//        do {
+//            switch (status = approval_future.wait_for(std::chrono::milliseconds(5000)); status) {
+//                case std::future_status::timeout:
+//                    session->cancel();
+//                    timedOut = true;
+//                    break;
+//            }
+//        } while (status == std::future_status::deferred);
+//
+//        if (timedOut) {
+//            sessionManager->deleteSession(session);
+//            delete session;
+//
+//            throw STIP::errors::STIPTimeoutException("No response for data message");
+//        }
+            bool approvalResult = session->waitApprovalWrappedTimout(resultTimout, 5000, 3);
+            if (resultTimout) {
+                throw STIP::errors::STIPTimeoutException("No response for data message");
+            }
+
+            if (!approvalResult) {
+                throw STIP::errors::STIPException("Interrupted data message");
+            }
+
+        } catch (STIP::errors::STIPException &e) {
+            std::cerr << e.what() << std::endl;
+            totalResult = false;
         }
+
+
+
         sessionManager->deleteSession(session);
         delete session;
-        return true;
+        return totalResult;
     }
 
 
@@ -195,7 +192,7 @@ namespace STIP {
             std::cout << "Size: " << packet.header.size << std::endl;
             std::cout << "Session id: " << packet.header.session_id << std::endl;
 
-
+            ReceiveMessageSession *tempReceiveSession;
             switch (packet.header.command) {
                 ReceiveMessageSession *tempMsgSession;
                 size_t packet_counts;
@@ -223,7 +220,8 @@ namespace STIP {
                             packet.header.session_id,
                             20000,
                             [this, session_id] {
-                                auto* temp = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(session_id));
+                                auto *temp = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(
+                                        session_id));
                                 sessionManager->deleteSessionById(session_id);
                                 delete temp;
                             }
@@ -231,7 +229,6 @@ namespace STIP {
                     break;
 
                 case Command::MSG_SEND_DATA_PART:
-                    ReceiveMessageSession *tempReceiveSession;
                     tempReceiveSession = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(
                             packet.header.session_id));
                     if (tempReceiveSession != nullptr) {
@@ -241,18 +238,22 @@ namespace STIP {
                     }
 
                     if (tempReceiveSession->getStatus() == 5) {
-                        sessionKiller.deleteSessionTimeout(packet.header.session_id);
-
+                        if (tempReceiveSession->dispatched) break;
+                        tempReceiveSession->dispatched = true;
                         std::lock_guard<std::mutex> lock(messageMtx);
                         messageQueue.push(tempReceiveSession);
                         std::cout << "Message received, should be notified" << std::endl;
                         messageCv.notify_one();
-
-                    } else if (tempReceiveSession->getStatus() == 6) {
-                        sessionManager->deleteSession(tempReceiveSession);
-                        delete tempReceiveSession;
                     }
+                    break;
 
+                case Command::MSG_KILLED:
+                    tempReceiveSession = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(
+                            packet.header.session_id));
+                    if (tempReceiveSession==nullptr) break;
+                    sessionKiller.deleteSessionTimeout(packet.header.session_id);
+                    sessionManager->deleteSession(tempReceiveSession);
+                    delete tempReceiveSession;
                     break;
 
                 case Command::PING_ASK:

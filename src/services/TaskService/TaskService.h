@@ -18,6 +18,8 @@ public:
 
     void updateTask(const Task& task);
 
+    Task findTaskByID(std::string id);
+
 private:
     std::vector<Task> tasks;
 

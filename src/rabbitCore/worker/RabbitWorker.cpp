@@ -12,6 +12,7 @@
 #include "DataModel/TaskResult.h"
 #include "DataModel/Worker.h"
 #include "DataModel/Message.h"
+#include "TaskRequest.h"
 
 using boost::asio::ip::udp;
 
@@ -19,6 +20,7 @@ using boost::asio::ip::udp;
 //typedef std::map<std::string, func_type> func_map_type;
 
 RabbitWorker::RabbitWorker(std::string id, std::string host, int port, int cores) {
+    std::cout << "RabbitWorker::RabbitWorker - Initializing with id: " << id << ", host: " << host << ", port: " << port << ", cores: " << cores << std::endl;
     this->id = std::move(id);
     this->host = std::move(host);
     this->port = port;
@@ -26,6 +28,7 @@ RabbitWorker::RabbitWorker(std::string id, std::string host, int port, int cores
 }
 
 void RabbitWorker::init() {
+    std::cout << "RabbitWorker::init - Initialization started" << std::endl;
     resolver = new udp::resolver(io_context);
     auto endpoints = resolver->resolve(udp::v4(), host, std::to_string(port));
     server_endpoint = new udp::endpoint(*endpoints.begin());
@@ -43,6 +46,7 @@ void RabbitWorker::init() {
 
     // Register worker
     if (connection) {
+        std::cout << "RabbitWorker::init - Connection established" << std::endl;
         // Create Worker object to send
         Worker worker = {
                 id,
@@ -64,44 +68,75 @@ void RabbitWorker::init() {
 
         std::string msg = messageJson.dump();
         connection->sendMessage(msg);
+        std::cout << "RabbitWorker::init - Worker registered with server" << std::endl;
     } else {
-        std::cerr << "Error: Failed to connect to server." << std::endl;
+        std::cerr << "RabbitWorker::init - Error: Failed to connect to server." << std::endl;
     }
 }
 
-
 void RabbitWorker::startPolling() {
+    std::cout << "RabbitWorker::startPolling - Polling started" << std::endl;
     for (;;) {
         STIP::ReceiveMessageSession *received = connection->receiveMessage();
+        std::cout << "RabbitWorker::startPolling - Received message: " << received->getDataAsString() << std::endl;
         json request = json::parse(received->getDataAsString());
-        json data = request["data"];
-        int taskCores = request["cores"];
-//        int func = request["func"];
-        std::string func = request["func"];
-        std::string id = request["id"];
+        std::cout << "RabbitWorker::startPolling - Received message: " << request.dump() << std::endl;
 
-        if (mapping.find(func) != mapping.end()) {
-            (this->*mapping[func])(id, data, taskCores);
-        } else {
-            std::cout << "Function not found" << std::endl;
+        Message message = request.get<Message>();
+        json messageData = json::parse(message.data);
+        switch (message.action) {
+            case MessageType::TaskRequest: {
+                std::cout << "RabbitWorker::startPolling - Received task request" << std::endl;
+                struct TaskRequest task = messageData.get<struct TaskRequest>();
+                json data = json::parse(task.data);
+
+                if (mapping.find(task.func) != mapping.end()) {
+                    std::cout << "RabbitWorker::startPolling - Executing handler for func: " << task.func << std::endl;
+                    (this->*mapping[task.func])(task.id, data, task.cores);
+                } else {
+                    std::cout << "RabbitWorker::startPolling - Function not found: " << task.func << std::endl;
+                }
+                break;
+            }
+            default:
+                std::cout << "RabbitWorker::startPolling - Unknown message type" << std::endl;
+                break;
         }
+
+
+//        auto data = (request["data"]);
+//        int taskCores = request["cores"];
+//        std::string func = request["func"];
+//        std::string request_id = request["id"];
+
+//        std::cout << "RabbitWorker::startPolling - Received message with func: " << func << ", request_id: " << request_id << std::endl;
+//
+//        if (mapping.find(func) != mapping.end()) {
+//            std::cout << "RabbitWorker::startPolling - Executing handler for func: " << func << std::endl;
+//            (this->*mapping[func])(request_id, data, taskCores);
+//        } else {
+//            std::cout << "RabbitWorker::startPolling - Function not found: " << func << std::endl;
+//        }
     }
 }
 
 // worker function implementations
 
 void RabbitWorker::doWait(int seconds) {
+    std::cout << "RabbitWorker::doWait - Waiting for " << seconds << " seconds" << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(seconds));
 }
 
 int RabbitWorker::simpleMath(int a, int b) {
+    std::cout << "RabbitWorker::simpleMath - Adding " << a << " + " << b << std::endl;
     int c = a + b;
     std::this_thread::sleep_for(std::chrono::seconds(c));
+    std::cout << "RabbitWorker::simpleMath - Result is " << c << std::endl;
     return c;
 }
 
-
 int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
+    std::cout << "RabbitWorker::determinant - Calculating determinant for matrix of size " << n << std::endl;
     int det = 1;
 
     for (int i = 0; i < n; i++) {
@@ -118,57 +153,39 @@ int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
         det *= matrix[i][i];
     }
 
+    std::cout << "RabbitWorker::determinant - Determinant result is " << det << std::endl;
     return det;
 }
 
+void RabbitWorker::simpleMathHandler(std::string request_id, json data, int taskCores) {
+    std::cout << "RabbitWorker::simpleMathHandler - Handling simpleMath for request_id: " << request_id << std::endl;
+    int a, b, result;
+    try {
+        a = data["a"];
+        b = data["b"];
+        result = simpleMath(a, b);
+    } catch (json::exception &e) {
+        std::cerr << "RabbitWorker::simpleMathHandler - Error parsing data: " << e.what() << std::endl;
+        return;
+    }
 
-// handlers
+    struct TaskResult taskResult = {
+            request_id,
+            json({{"result", result}}).dump(),
+            1
+    };
 
-//void RabbitWorker::simpleMathHandler(json data, int taskCores) {
-//    std::vector<std::thread> threads;
-//    threads.reserve(taskCores);
-//
-//    std::vector<std::pair<int, int>> pairs = data.get<std::vector<std::pair<int, int>>>();
-//
-//    std::vector<int> results(pairs.size());
-//
-//    for (int i = 0; i < pairs.size(); ++i) {
-//        threads.emplace_back([this, &pairs, &results, i] {
-//            results[i] = this->simpleMath(pairs[i].first, pairs[i].second);
-//        });
-//
-//        if (threads.size() == taskCores || i == pairs.size() - 1) {
-//            for (auto &t : threads) {
-//                t.join();
-//            }
-//            threads.clear();
-//        }
-//    }
-//
-//    json jResults = json::array();
-//    for (int & result : results) {
-//        jResults.push_back(result);
-//    }
-//    TaskResult taskResult{0, jResults.dump(), 1};
-//
-//    json response = taskResult;
-//    connection->sendMessage(response.dump());
-//}
+    Message message = {
+            MessageType::TaskResult,
+            json(taskResult).dump()
+    };
 
-void RabbitWorker::simpleMathHandler(std::string id, json data, int taskCores) {
-    int a = data["a"];
-    int b = data["b"];
-    int result = simpleMath(a, b);
-
-    json jResult = json::object();
-    jResult["result"] = result;
-    struct TaskResult taskResult{id, jResult.dump(), 1};
-
-    json response = taskResult;
-    connection->sendMessage(response.dump());
+    connection->sendMessage(json(message).dump());
+    std::cout << "RabbitWorker::simpleMathHandler - Result sent for request_id: " << request_id << std::endl;
 }
 
 void RabbitWorker::determinantHandler(std::string id, json data, int taskCores) {
+    std::cout << "RabbitWorker::determinantHandler - Handling determinant for request_id: " << id << std::endl;
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
 
@@ -178,6 +195,7 @@ void RabbitWorker::determinantHandler(std::string id, json data, int taskCores) 
 
     for (int i = 0; i < matrices.size(); ++i) {
         threads.emplace_back([this, &matrices, &results, i] {
+            std::cout << "RabbitWorker::determinantHandler - Starting thread for matrix " << i << std::endl;
             results[i] = this->determinant(matrices[i], matrices[i].size());
         });
 
@@ -197,8 +215,5 @@ void RabbitWorker::determinantHandler(std::string id, json data, int taskCores) 
 
     json response = taskResult;
     connection->sendMessage(response.dump());
+    std::cout << "RabbitWorker::determinantHandler - Results sent for request_id: " << id << std::endl;
 }
-
-
-
-

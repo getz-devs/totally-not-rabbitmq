@@ -16,13 +16,13 @@ struct TaskResult {
     int status;
 };
 
-inline void to_json(json &j, const TaskResult &tr) {
+inline void to_json(json &j, const struct TaskResult &tr) {
     j = json{{"id",     tr.id},
              {"data",   tr.data},
              {"status", tr.status}};
 }
 
-inline void from_json(const json &j, TaskResult &tr) {
+inline void from_json(const json &j, struct TaskResult &tr) {
     j.at("id").get_to(tr.id);
     j.at("data").get_to(tr.data);
     j.at("status").get_to(tr.status);

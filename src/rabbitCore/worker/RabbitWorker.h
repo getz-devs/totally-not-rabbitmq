@@ -59,7 +59,7 @@ private:
 
     static void doWait(int seconds);
 
-    void simpleMathHandler(std::string id, json data, int taskCores);
+    void simpleMathHandler(std::string request_id, json data, int taskCores);
 
     void determinantHandler(std::string id, json data, int taskCores);
 

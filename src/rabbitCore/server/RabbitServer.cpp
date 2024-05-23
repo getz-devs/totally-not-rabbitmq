@@ -7,6 +7,7 @@
 #include "DataModel/Message.h"
 #include "RabbitServer.h"
 #include "TaskRequest.h"
+#include "TaskResult.h"
 #include <queue>
 #include <iomanip> // For std::put_time
 
@@ -131,27 +132,31 @@ void RabbitServer::processWorker(Worker &worker) {
         switch (message.action) {
             case MessageType::TaskResult: {
                 std::cout << logTime() << "Received TaskResult from worker: " << worker.id << std::endl;
-                Task task;
+                struct TaskResult result;
                 try {
-                    task = data.template get<Task>();
-                    std::cout << logTime() << "Task marked as Ready: " << task.id << std::endl;
+                    result = data.template get<struct TaskResult>();
                 } catch (json::exception &e) {
                     std::cerr << logTime() << "Error parsing task: " << e.what() << std::endl;
-                    break;
+                    continue;
                 }
 
+                Task task = taskService.findTaskByID(result.id);
                 task.status = TaskStatus::Ready;
+                std::cout << logTime() << "Task marked as Ready: " << result.id << std::endl;
+                task.output = result.data;
+
                 taskService.updateTask(task);
                 worker.usedCores -= task.cores;
                 userDBService.updateWorker(worker);
 
                 Client client = userDBService.findClientByID(task.client_hash_id);
-                Message result_message;
-                result_message.action = MessageType::TaskResult;
-                result_message.data = data;
 
-                json result_message_json = result_message;
-                client.connection->sendMessage(result_message_json.dump());
+                Message result_message = {
+                        MessageType::TaskResult,
+                        message.data
+                };
+
+                client.connection->sendMessage(json(result_message).dump());
                 std::cout << logTime() << "Sent TaskResult to client: " << client.id << std::endl;
 
                 checkTaskQueue(worker);
@@ -253,13 +258,19 @@ void RabbitServer::processTask(Task &task) {
     task.status = TaskStatus::SentToWorker;
     taskService.updateTask(task);
 
-    Message message;
-    message.action = MessageType::TaskRequest;
-    json task_json = task;
-    message.data = task_json.dump();
+    struct TaskRequest taskRequest = {
+            task.id,
+            task.func,
+            task.input,
+            task.cores
+    };
 
-    json message_json = message;
-    worker.connection->sendMessage(message_json.dump());
+    Message message = {
+            MessageType::TaskRequest,
+            json(taskRequest).dump()
+    };
+
+    worker.connection->sendMessage(json(message).dump());
     std::cout << logTime() << "Task " << task.id << " sent to worker " << worker.id << std::endl;
 }
 

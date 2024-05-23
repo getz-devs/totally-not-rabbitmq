@@ -41,3 +41,12 @@ void TaskService::changeTaskStatus(const std::string &id, TaskStatus status) {
 std::string TaskService::newTaskID() {
     return "task-" + std::to_string(tasks.size());
 }
+
+Task TaskService::findTaskByID(std::string id) {
+    for (auto &task: tasks) {
+        if (task.id == id) {
+            return task;
+        }
+    }
+    throw std::runtime_error("Task not found");
+}

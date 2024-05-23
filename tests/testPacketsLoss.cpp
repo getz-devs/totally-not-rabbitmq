@@ -130,7 +130,7 @@ TEST(Protocol, MessageTransferingWithProxyDropDataPackets) {
     udp::endpoint proxy_endpoint = udp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), DEF_PROXY_PORT);
 
     UdpProxy proxy(DEF_CLIENT_PORT, DEF_SERVER_PORT, DEF_PROXY_PORT);
-    proxy.runTest_1(100);
+    proxy.runTest_1(200);
 
 //    proxy.setDelay(300);
     proxy.async_start();

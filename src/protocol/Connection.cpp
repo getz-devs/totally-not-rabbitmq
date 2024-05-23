@@ -24,7 +24,9 @@ namespace STIP {
         packetQueue.push(packet);
 //    timeoutTimer.reset();
         cv.notify_one();
+#ifdef STIP_PROTOCOL_DEBUG
         std::cout << "Packet added to queue" << std::endl;
+#endif
     }
 
 
@@ -63,8 +65,9 @@ namespace STIP {
         // delete session manager
         delete sessionManager;
 
+#ifdef STIP_PROTOCOL_DEBUG
         std::cout << "Connection destroyed" << std::endl;
-
+#endif
     }
 
 
@@ -181,17 +184,19 @@ namespace STIP {
 
 
     void Connection::processThread() {
+#ifdef STIP_PROTOCOL_DEBUG
         std::cout << "Start processing packets for " << endpoint.address() << ":" << endpoint.port() << std::endl;
+#endif
         while (isRunning) {
             bool result = false;
             STIP_PACKET packet = getPacket(result);
 
             if (!result) continue;
-
+#ifdef STIP_PROTOCOL_DEBUG
             std::cout << "Command: " << packet.header.command << std::endl;
             std::cout << "Size: " << packet.header.size << std::endl;
             std::cout << "Session id: " << packet.header.session_id << std::endl;
-
+#endif
             ReceiveMessageSession *tempReceiveSession;
             switch (packet.header.command) {
                 ReceiveMessageSession *tempMsgSession;
@@ -205,7 +210,9 @@ namespace STIP {
                     }
 
                     // message
+#ifdef STIP_PROTOCOL_DEBUG
                     std::cout << "Message received" << std::endl;
+#endif
 //                    packet_counts = *(size_t *) packet.data;
                     packet_counts = packet.header.packet_id;
 
@@ -242,7 +249,9 @@ namespace STIP {
                         tempReceiveSession->dispatched = true;
                         std::lock_guard<std::mutex> lock(messageMtx);
                         messageQueue.push(tempReceiveSession);
+#ifdef STIP_PROTOCOL_DEBUG
                         std::cout << "Message received, should be notified" << std::endl;
+#endif
                         messageCv.notify_one();
                     }
                     break;
@@ -258,7 +267,9 @@ namespace STIP {
 
                 case Command::PING_ASK:
                     // ping
+#ifdef STIP_PROTOCOL_DEBUG
                     std::cout << "Ping received" << std::endl;
+#endif
                     PingSession::serverAnswer(*socket, endpoint, packet.header.session_id);
                     break;
                 default:
@@ -272,7 +283,9 @@ namespace STIP {
                     break;
             }
         }
+#ifdef STIP_PROTOCOL_DEBUG
         std::cout << "Stop processing packets for " << endpoint.address() << ":" << endpoint.port() << std::endl;
+#endif
     }
 
     void Connection::startProcessing() {

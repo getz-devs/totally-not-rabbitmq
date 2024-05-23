@@ -17,7 +17,9 @@ namespace STIP {
         if (packet.header.command != Command::PING_ANSWER) {
             return;
         }
+#ifdef STIP_PROTOCOL_DEBUG
         std::cout << "PingSession processIncomingPacket" << std::endl;
+#endif
         answer = *(uint32_t *) packet.data;
         isAnswered = true;
         cv.notify_one();
@@ -30,12 +32,16 @@ namespace STIP {
     }
 
     PingSession::~PingSession() {
+#ifdef STIP_PROTOCOL_DEBUG
         std::cout << "PingSession destroyed" << std::endl;
+#endif
     }
 
     PingSession::PingSession(uint32_t id) {
         this->id = id;
+#ifdef STIP_PROTOCOL_DEBUG
         std::cout << "PingSession created with id " << id << "\n";
+#endif
     }
 
     void PingSession::serverAnswer(udp::socket &socket, udp::endpoint &endpoint, uint32_t sessionId) {
@@ -134,7 +140,9 @@ namespace STIP {
             if (timeout_this_try) {
                 response_future.wait();
                 _cancaled = false;
+#ifdef STIP_PROTOCOL_DEBUG
                 std::cout << "[RETRY INIT] Timeout elapsed. Try " << i + 1 << std::endl;
+#endif
                 continue;
             }
 
@@ -183,7 +191,9 @@ namespace STIP {
         timeout_result = false;
 
         for (int i = 0; i < retry_count; i++) {
+#ifdef STIP_PROTOCOL_DEBUG
             std::cout << "[RETRY] Try " << i << std::endl;
+#endif
             bool timeout_1_try = false;
             std::future<SendMessageStatuses> response_future = std::async(std::launch::async, [this]() {
                 askAllReceived();
@@ -203,7 +213,9 @@ namespace STIP {
             if (timeout_1_try) {
                 response_future.wait();
                 _cancaled = false;
+#ifdef STIP_PROTOCOL_DEBUG
                 std::cout << "[RETRY] Timeout elapsed. Try " << i + 1 << std::endl;
+#endif
                 continue;
             }
 
@@ -214,7 +226,9 @@ namespace STIP {
                 return false;
             } else if (result == DATA_RESPONSE_RESEND) {
                 --i;
+#ifdef STIP_PROTOCOL_DEBUG
                 std::cout << "Asked resend" << std::endl;
+#endif
             }
         }
         timeout_result = true;

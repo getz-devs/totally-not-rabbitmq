@@ -31,9 +31,10 @@ namespace STIP {
                 return;
 //            throw boost::system::system_error(error);
             }
+#ifdef STIP_PROTOCOL_DEBUG
             std::cout << "Получен запрос от " << remote_endpoint.address() << ":" << remote_endpoint.port()
                       << std::endl;
-
+#endif
             connectionManager->accept(remote_endpoint, packet[0]);
         }
     }

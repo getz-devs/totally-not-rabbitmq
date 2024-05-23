@@ -174,6 +174,7 @@ namespace STIP {
         });
         if (status == DATA_RESPONSE_RESEND) {
             status = SendMessageStatuses::DATA_REQEUST_SENT;
+            return DATA_RESPONSE_RESEND;
         }
         return status;
     }
@@ -242,8 +243,11 @@ namespace STIP {
         packet[0].header.command = Command::MSG_REQUEST_ALL_RECEIVED;
         packet[0].header.session_id = id;
         packet[0].header.size = sizeof(STIP_HEADER);
-        socket->send_to(boost::asio::buffer(packet, packet[0].header.size), endpoint);
 
+        // if packet counts > 1 then pump this packet with junk data
+
+        socket->send_to(boost::asio::buffer(packet, packet[0].header.size), endpoint);
+//        socket->send_to(boost::asio::buffer(packet, STIP::MAX_UDP_SIZE), endpoint);
     }
 
 

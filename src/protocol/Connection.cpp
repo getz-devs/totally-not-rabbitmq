@@ -106,7 +106,7 @@ namespace STIP {
         bool totalResult = true;
         try {
             bool resultTimout = false;
-            bool initSendResult = session->initSendWrappedTimout(resultTimout, 1000, 3);
+            bool initSendResult = session->initSendWrappedTimout(resultTimout, 2000, 3);
             if (resultTimout) {
                 throw STIP::errors::STIPTimeoutException("No response for init message");
             }
@@ -139,7 +139,7 @@ namespace STIP {
 //
 //            throw STIP::errors::STIPTimeoutException("No response for data message");
 //        }
-            bool approvalResult = session->waitApprovalWrappedTimout(resultTimout, 5000, 3);
+            bool approvalResult = session->waitApprovalWrappedTimout(resultTimout, 3000, 6);
             if (resultTimout) {
                 throw STIP::errors::STIPTimeoutException("No response for data message");
             }

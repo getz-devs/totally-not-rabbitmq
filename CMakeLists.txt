@@ -48,7 +48,6 @@ add_executable(STIPTest
         src/protocol/Connection.cpp
         src/protocol/Session.cpp
         src/protocol/SessionKiller.cpp
-#        tests/UdpProxy.cpp
 )
 
 add_executable(STIPTestProxy
@@ -58,6 +57,17 @@ add_executable(STIPTestProxy
         src/protocol/Session.cpp
         src/protocol/SessionKiller.cpp
         tests/testPacketsLoss.cpp
+        tests/util/UdpProxy.cpp
+)
+
+add_executable(STIPTestBigData
+        src/server/STIPServer.cpp
+        src/client/STIPClient.cpp
+        src/protocol/Connection.cpp
+        src/protocol/Session.cpp
+        src/protocol/SessionKiller.cpp
+        tests/testBigData.cpp
+        tests/util/UdpProxy.cpp
 )
 
 add_executable(UdpProxy
@@ -117,10 +127,15 @@ target_link_libraries(STIPTestProxy
         Boost::asio ws2_32
 )
 
+target_link_libraries(STIPTestBigData
+        GTest::gtest_main
+        Boost::asio ws2_32
+)
+
 target_link_libraries(UdpProxy
         Boost::asio ws2_32
 )
 
 include(GoogleTest)
-gtest_discover_tests(STIPTest STIPTestProxy)
+gtest_discover_tests(STIPTest STIPTestProxy STIPTestBigData)
 

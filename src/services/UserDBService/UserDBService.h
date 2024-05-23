@@ -31,6 +31,8 @@ public:
 
     Worker findMostFreeWorker(int cores);
 
+    void printLog();
+
 
 private:
     std::vector<Client> clients;

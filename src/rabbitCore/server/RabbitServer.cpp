@@ -146,8 +146,13 @@ void RabbitServer::processWorker(Worker &worker) {
                 task.output = result.data;
 
                 taskService.updateTask(task);
-                worker.usedCores -= task.cores;
+                std::cout << logTime() << "Update cores: Worker before has used cores: " << worker.usedCores << std::endl;
+                std::cout << logTime() << "Task cores: " << task.cores << std::endl;
+                worker.usedCores = worker.usedCores - task.cores;
+                std::cout << logTime() << "Update cores: decrease " << task.cores << std::endl;
                 userDBService.updateWorker(worker);
+                std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores
+                          << std::endl;
 
                 Client client = userDBService.findClientByID(task.client_hash_id);
 
@@ -227,6 +232,11 @@ void RabbitServer::processClient(Client &client) {
 }
 
 void RabbitServer::checkTaskQueue(Worker &worker) {
+    userDBService.printLog();
+    std::cout << logTime() << "Checking task queue for worker " << worker.id << std::endl;
+    std::cout << logTime() << "Worker " << worker.id << " has " << worker.cores - worker.usedCores
+              << " free cores " << "(cores: " << worker.cores << ", used: " << worker.usedCores << ")\n";
+
     Task pendingTask;
     if (pendingTasks.tryDequeue(pendingTask, worker.cores - worker.usedCores)) {
         std::cout << logTime() << "Assigning pending task " << pendingTask.id << " to worker "
@@ -237,6 +247,13 @@ void RabbitServer::checkTaskQueue(Worker &worker) {
         json task_json = pendingTask;
         message.data = task_json;
 
+        // update worker
+        worker.usedCores += pendingTask.cores;
+        std::cout << logTime() << "Update cores: increase " << pendingTask.cores << std::endl;
+        userDBService.updateWorker(worker);
+        std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores
+                  << std::endl;
+
         json message_json = message;
         worker.connection->sendMessage(message_json.dump());
 
@@ -246,7 +263,9 @@ void RabbitServer::checkTaskQueue(Worker &worker) {
 
 
 void RabbitServer::processTask(Task &task) {
+    userDBService.printLog();
     Worker worker = userDBService.findMostFreeWorker(task.cores);
+    std::cout << logTime() << "Found worker: " << worker.id << " (Cores: " << worker.cores << ")\n";
 
     if (worker.id.empty()) {
         pendingTasks.enqueue(task);
@@ -257,6 +276,13 @@ void RabbitServer::processTask(Task &task) {
     task.worker_hash_id = worker.id;
     task.status = TaskStatus::SentToWorker;
     taskService.updateTask(task);
+
+    // update worker
+    worker.usedCores += task.cores;
+    std::cout << logTime() << "Update cores: increase " << task.cores << std::endl;
+    userDBService.updateWorker(worker);
+    std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores << std::endl;
+
 
     struct TaskRequest taskRequest = {
             task.id,

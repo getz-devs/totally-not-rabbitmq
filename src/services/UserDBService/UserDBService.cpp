@@ -30,17 +30,21 @@ void UserDBService::removeWorker(const Worker &worker) {
     }
 }
 
-Worker UserDBService::findMostFreeWorker(int cores) {
+Worker UserDBService::findMostFreeWorker(int requiredCores) {
     Worker mostFreeWorker;
-    int minCores = INT_MAX;
+    int maxFreeCores = -1; // Start with -1 to ensure any valid worker with free cores will be considered.
+
     for (auto &worker: workers) {
-        if (worker.cores >= cores && worker.cores < minCores) {
+        int freeCores = worker.cores - worker.usedCores;
+        if (freeCores >= requiredCores && freeCores > maxFreeCores) {
             mostFreeWorker = worker;
-            minCores = worker.cores;
+            maxFreeCores = freeCores;
         }
     }
-    return mostFreeWorker;
+
+    return mostFreeWorker; // Will return default Worker if no suitable worker is found.
 }
+
 
 Client UserDBService::findClientByID(const std::string &id) {
     for (auto &client: clients) {
@@ -68,4 +72,18 @@ void UserDBService::updateWorker(const Worker &worker) {
         }
     }
     throw std::runtime_error("Worker not found");
+}
+
+void UserDBService::printLog() {
+    // print clients, workers and worker used cores
+    std::cout << "Clients: " << std::endl;
+    for (auto &client: clients) {
+        std::cout << "Client: " << client.id << std::endl;
+    }
+
+    std::cout << "Workers: " << std::endl;
+    for (auto &worker: workers) {
+        std::cout << "Worker: " << worker.id << ", Cores: " << worker.cores << ", Used cores: " << worker.usedCores
+                  << std::endl;
+    }
 }

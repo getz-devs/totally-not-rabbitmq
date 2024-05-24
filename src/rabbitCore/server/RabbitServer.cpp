@@ -145,7 +145,10 @@ void RabbitServer::processWorker(Worker &worker) {
                     continue;
                 }
 
-                Task task = taskService.findTaskByID(result.id);
+                Task task = taskService.findTaskByID(result.id); // fix
+
+                std::cout << json(task).dump() << std::endl;
+
                 task.status = TaskStatus::Ready;
                 std::cout << logTime() << "Task marked as Ready: " << result.id << std::endl;
                 task.output = result.data;
@@ -288,6 +291,10 @@ void RabbitServer::checkTaskQueue(Worker &worker) {
 //        userDBService.updateWorker(worker);
 //        std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores
 //                  << std::endl;
+
+        pendingTask.worker_hash_id = worker.id;
+        pendingTask.status = TaskStatus::SentToWorker;
+        taskService.updateTask(pendingTask);
 
         try {
             json message_json = message;

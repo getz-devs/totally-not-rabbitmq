@@ -18,9 +18,7 @@ void TaskService::addTask(Task task) {
     }
     task.status = TaskStatus::Queued;
     tasks.push_back(task);
-#ifdef SERVER_LOG_FILES
     saveTasksToFile("tasks.md");
-#endif
 
 }
 
@@ -28,9 +26,7 @@ void TaskService::updateTask(const Task &task) {
     for (auto &t: tasks) {
         if (t.id == task.id) {
             t = task;
-#ifdef SERVER_LOG_FILES
             saveTasksToFile("tasks.md");
-#endif
             return;
         }
     }
@@ -41,9 +37,7 @@ void TaskService::changeTaskStatus(const std::string &id, TaskStatus status) {
     for (auto &task: tasks) {
         if (task.id == id) {
             task.status = status;
-#ifdef SERVER_LOG_FILES
             saveTasksToFile("tasks.md");
-#endif
             return;
         }
     }

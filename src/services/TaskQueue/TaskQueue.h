@@ -21,6 +21,7 @@ public:
     void enqueue(const Task &task) {
         std::lock_guard<std::mutex> lock(queueMutex);
         taskQueue.push(task);
+        saveStateAsMarkdown("tasksQueue.md");
     }
 
     // Try to dequeue a task that meets the core requirement.

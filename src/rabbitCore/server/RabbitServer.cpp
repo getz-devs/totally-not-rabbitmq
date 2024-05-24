@@ -40,7 +40,10 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 
     auto receiveMessage = connection->receiveMessage();
     json request = json::parse(receiveMessage->getDataAsString());
+
+#ifdef SERVER_ARCH_DEBUG
     std::cout << "Received message: " << request.dump() << std::endl;
+#endif
     Message message;
     json data;
 
@@ -147,7 +150,6 @@ void RabbitServer::processWorker(Worker &worker) {
 
                 taskService.updateTask(task);
                 userDBService.modifyWorkerUsedCores(task.worker_hash_id, task.cores, false);
-                Worker workerFromDB = userDBService.findWorkerByID(task.worker_hash_id);
 
                 Client client = userDBService.findClientByID(task.client_hash_id);
 
@@ -262,10 +264,17 @@ void RabbitServer::checkTaskQueue(Worker &worker) {
         std::cout << logTime() << "Assigning pending task " << pendingTask.id << " to worker "
                   << worker.id << "\n";
 
-        Message message;
-        message.action = MessageType::TaskRequest;
-        json task_json = pendingTask;
-        message.data = task_json;
+        struct TaskRequest taskRequest = {
+                pendingTask.id,
+                pendingTask.func,
+                pendingTask.input,
+                pendingTask.cores
+        };
+
+        Message message = {
+                MessageType::TaskRequest,
+                json(taskRequest).dump()
+        };
 
         // update worker
         userDBService.modifyWorkerUsedCores(worker.id, pendingTask.cores, true);

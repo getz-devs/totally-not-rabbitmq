@@ -5,6 +5,7 @@
 #include "RabbitClient.h"
 
 #include <utility>
+#include "DataModel/TaskResult.h"
 #include "protocol/STIP.h"
 #include "client/STIPClient.h"
 #include "protocol/Connection.h"
@@ -78,17 +79,27 @@ void RabbitClient::init() {
 void RabbitClient::receiveResutls() {
     for (;;) {
         STIP::ReceiveMessageSession *received = connection->receiveMessage();
-        json result = json::parse(received->getDataAsString());
-        json data = result["data"];
-
-        if (data.is_array()) {
-            for (auto &row: data) {
-                std::cout << row << std::endl;
-            }
-        } else {
-            std::cout << data << std::endl;
-
+        auto message = json::parse(received->getDataAsString()).template get<struct Message>();
+        auto item = json::parse(message.data);
+        struct TaskResult result;
+        try {
+            result = item.template get<struct TaskResult>();
+        } catch (json::exception &e) {
+            std::cerr << "Error parsing task: " << e.what() << std::endl;
+            continue;
         }
+
+        json data = json::parse(result.data);
+        std::cout << data.dump(2) << std::endl;
+
+//        if (data.is_array()) {
+//            for (auto &row: data) {
+//                std::cout << row << std::endl;
+//            }
+//        } else {
+//            std::cout << data << std::endl;
+//
+//        }
     }
 }
 

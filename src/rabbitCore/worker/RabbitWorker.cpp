@@ -185,7 +185,7 @@ void RabbitWorker::simpleMathHandler(std::string request_id, json data, int task
     std::cout << "RabbitWorker::simpleMathHandler - Result sent for request_id: " << request_id << std::endl;
 }
 
-void RabbitWorker::determinantHandler(std::string id, json data, int taskCores) {
+void RabbitWorker::determinantHandler(std::string request_id, json data, int taskCores) {
     std::cout << "RabbitWorker::determinantHandler - Handling determinant for request_id: " << id << std::endl;
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
@@ -208,13 +208,17 @@ void RabbitWorker::determinantHandler(std::string id, json data, int taskCores) 
         }
     }
 
-    json jResults = json::array();
-    for (int &result: results) {
-        jResults.push_back(result);
-    }
-    struct TaskResult taskResult{id, jResults.dump(), 1};
+    struct TaskResult taskResult = {
+            request_id,
+            json(results).dump(),
+            1
+    };
 
-    json response = taskResult;
-    connection->sendMessage(response.dump());
-    std::cout << "RabbitWorker::determinantHandler - Results sent for request_id: " << id << std::endl;
+    Message message = {
+            MessageType::TaskResult,
+            json(taskResult).dump()
+    };
+
+    connection->sendMessage(json(message).dump());
+    std::cout << "RabbitWorker::determinantHandler - Results sent for request_id: " << request_id << std::endl;
 }

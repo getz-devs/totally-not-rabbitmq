@@ -69,6 +69,8 @@ private:
     void matrixMultiplicationHandler(const std::string& id, json data, int taskCores);
 
     func_map_type mapping;
+
+    void handleTaskRequest(const std::string &request_id, const std::string &func, const json &data, int taskCores);
 };
 
 

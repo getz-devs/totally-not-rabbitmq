@@ -91,14 +91,8 @@ void RabbitWorker::startPolling() {
                 std::cout << "RabbitWorker::startPolling - Received task request" << std::endl;
                 struct TaskRequest task = messageData.get<struct TaskRequest>();
                 json data = json::parse(task.data);
-
-                if (mapping.find(task.func) != mapping.end()) {
-                    std::cout << "RabbitWorker::startPolling - Executing handler for func: " << task.func << ", id: "
-                              << task.id << std::endl;
-                    (this->*mapping[task.func])(task.id, data, task.cores);
-                } else {
-                    std::cout << "RabbitWorker::startPolling - Function not found: " << task.func << std::endl;
-                }
+                // Call a separate function to handle the task asynchronously
+                handleTaskRequest(task.id, task.func, data, task.cores);
                 break;
             }
             default:
@@ -106,6 +100,24 @@ void RabbitWorker::startPolling() {
                 break;
         }
     }
+}
+
+void RabbitWorker::handleTaskRequest(const std::string &request_id, const std::string &func, const json &data,
+                                     int taskCores) {
+    // Check if the function exists in the mapping
+    if (mapping.find(func) == mapping.end()) {
+        std::cout << "RabbitWorker::handleTaskRequest - Function not found: " << func << std::endl;
+        return; // Exit early if the function doesn't exist
+    }
+
+    // Create a new thread for each task request
+    std::thread taskThread([this, request_id, func, data, taskCores]() {
+        // Directly call the corresponding handler
+        (this->*mapping[func])(request_id, data, taskCores);
+    });
+
+    // Detach the thread to run asynchronously without waiting
+    taskThread.detach();
 }
 
 // worker function implementations

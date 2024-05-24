@@ -1,0 +1,5 @@
+Flask
+watchdog
+markdown
+flask-socketio
+# pip install Flask watchdog markdown flask-socketio

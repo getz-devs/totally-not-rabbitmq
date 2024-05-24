@@ -22,6 +22,8 @@ RabbitServer::RabbitServer(int port) {
 
 void RabbitServer::init() {
     server_socket = new udp::socket(io_context, udp::endpoint(udp::v4(), port));
+    udp::socket::receive_buffer_size bigbufsize(INT_MAX);
+    server_socket->set_option(bigbufsize);
 }
 
 void RabbitServer::startPolling() {

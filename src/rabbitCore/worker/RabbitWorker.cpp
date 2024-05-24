@@ -36,6 +36,8 @@ void RabbitWorker::init() {
 
     server_socket = new udp::socket(io_context);
     server_socket->open(udp::v4());
+    udp::socket::receive_buffer_size bigbufsize(INT_MAX);
+    server_socket->set_option(bigbufsize);
 
     client = new STIP::STIPClient(*server_socket);
     client->startListen();

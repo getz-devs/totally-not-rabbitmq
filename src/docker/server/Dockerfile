@@ -6,7 +6,8 @@ RUN apt-get update && \
     build-essential \
     cmake \
     git \
-    unzip
+    unzip \
+    wget
 
 WORKDIR /usr/src/rabbit
 
@@ -14,7 +15,7 @@ WORKDIR /usr/src/rabbit
 COPY . /usr/src/rabbit
 
 # Install Boost
-RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.bz2 && \
+RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.bz2 --no-check-certificate && \
     tar -xf boost_1_84_0.tar.bz2 && \
     mv boost_1_84_0 boost && \
     cd boost && \

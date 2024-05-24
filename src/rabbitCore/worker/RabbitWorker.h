@@ -57,11 +57,16 @@ private:
 
     int determinant(std::vector<std::vector<int>> matrix, int n);
 
+    void matrixMultiplication(const std::vector<std::vector<int>> &matrixA, const std::vector<std::vector<int>> &matrixB,
+                              std::vector<std::vector<int>> &resultMatrix, int row, int col);
+
     static void doWait(int seconds);
 
     void simpleMathHandler(std::string request_id, json data, int taskCores);
 
     void determinantHandler(std::string id, json data, int taskCores);
+
+    void matrixMultiplicationHandler(std::string id, json data, int taskCores);
 
     func_map_type mapping;
 };

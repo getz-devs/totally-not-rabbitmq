@@ -158,6 +158,14 @@ int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
     return det;
 }
 
+void RabbitWorker::matrixMultiplication(const std::vector<std::vector<int>> &matrixA, const std::vector<std::vector<int>> &matrixB,
+                                        std::vector<std::vector<int>> &resultMatrix, int row, int col) {
+    int colsA = matrixA[0].size();
+    for (int k = 0; k < colsA; ++k) {
+        resultMatrix[row][col] += matrixA[row][k] * matrixB[k][col];
+    }
+}
+
 void RabbitWorker::simpleMathHandler(std::string request_id, json data, int taskCores) {
     std::cout << "RabbitWorker::simpleMathHandler - Handling simpleMath for request_id: " << request_id << std::endl;
     int a, b, result;
@@ -222,3 +230,44 @@ void RabbitWorker::determinantHandler(std::string request_id, json data, int tas
     connection->sendMessage(json(message).dump());
     std::cout << "RabbitWorker::determinantHandler - Results sent for request_id: " << request_id << std::endl;
 }
+
+void RabbitWorker::matrixMultiplicationHandler(std::string id, json data, int taskCores) {
+    std::cout << "RabbitWorker::matrixMultiplicationHandler - Handling matrix multiplication for request_id: " << id << std::endl;
+    std::vector<std::thread> threads;
+    threads.reserve(taskCores);
+
+    std::vector<std::vector<std::vector<int>>> matrices = data.get<std::vector<std::vector<std::vector<int>>>>();
+    std::vector<std::vector<int>> matrixA = matrices[0];
+    std::vector<std::vector<int>> matrixB = matrices[1];
+
+    if (matrixA[0].size() != matrixB.size()) {
+        std::cerr << "RabbitWorker::matrixMultiplicationHandler - Matrix dimensions do not match for multiplication" << std::endl;
+        return;
+    }
+
+    int rowsA = matrixA.size();
+    int colsB = matrixB[0].size();
+    std::vector<std::vector<int>> resultMatrix(rowsA, std::vector<int>(colsB, 0));
+
+    for (int row = 0; row < rowsA; ++row) {
+        for (int col = 0; col < colsB; ++col) {
+            threads.emplace_back(&RabbitWorker::matrixMultiplication, this, std::ref(matrixA), std::ref(matrixB), std::ref(resultMatrix), row, col);
+
+            if (threads.size() == taskCores || (row == rowsA - 1 && col == colsB - 1)) {
+                for (auto &t : threads) {
+                    t.join();
+                }
+                threads.clear();
+            }
+        }
+    }
+
+    json jResultMatrix = resultMatrix;
+    struct TaskResult taskResult{id, jResultMatrix.dump(), 1};
+
+    json response = taskResult;
+    connection->sendMessage(response.dump());
+    std::cout << "RabbitWorker::matrixMultiplicationHandler - Results sent for request_id: " << id << std::endl;
+}
+
+

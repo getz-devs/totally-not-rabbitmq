@@ -130,6 +130,8 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 }
 
 void RabbitServer::processWorker(Worker &worker) {
+    checkTaskQueue(worker);
+
     for (;;) {
         auto receiveMessage = worker.connection->receiveMessage();
 //        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
@@ -158,9 +160,11 @@ void RabbitServer::processWorker(Worker &worker) {
                     continue;
                 }
 
-                Task task = taskService.findTaskByID(result.id); // fix
+                Task task = taskService.findTaskByID(result.id);
 
+#ifdef SERVER_ARCH_DEBUG
                 std::cout << json(task).dump() << std::endl;
+#endif
 
                 task.status = TaskStatus::Ready;
                 std::cout << logTime() << "Task marked as Ready: " << result.id << std::endl;
@@ -207,17 +211,17 @@ void RabbitServer::processClient(Client &client) {
 //        std::cout << "Received message: " << request.dump() << std::endl;
         std::cout << "start converting" << std::endl;
         auto rawMessage = receiveMessage->getData();
-        char * payload = static_cast<char *>(rawMessage.first);
+        char *payload = static_cast<char *>(rawMessage.first);
         std::cout << "start parsing" << std::endl;
         json request = json::parse(payload, payload + rawMessage.second);
 
         Message message;
         json data;
         try {
-            std::cout << "Loaded to request"  << std::endl;
+            std::cout << "Loaded to request" << std::endl;
             message = request.template get<Message>();
             data = json::parse(message.data);
-            std::cout << "Loaded to data1"  << std::endl;
+            std::cout << "Loaded to data1" << std::endl;
         } catch (json::exception &e) {
             std::cerr << "Error parsing message: " << e.what() << std::endl;
             continue;
@@ -229,9 +233,9 @@ void RabbitServer::processClient(Client &client) {
                 struct TaskRequest taskRequest;
                 try {
 //                    std::cout << "Task data: " << data.dump() << std::endl;
-                    std::cout << "Loaded to data2"  << std::endl;
+                    std::cout << "Loaded to data2" << std::endl;
                     taskRequest = data.template get<struct TaskRequest>();
-                    std::cout << "Loaded to taskRequest"  << std::endl;
+                    std::cout << "Loaded to taskRequest" << std::endl;
                     std::cout << logTime() << "Task added: " << taskRequest.id << " (Cores: " << taskRequest.cores
                               << ")"
                               << std::endl;
@@ -266,7 +270,7 @@ void RabbitServer::processClient(Client &client) {
                 break;
         }
     }
-    for (auto& thread : threads) {
+    for (auto &thread: threads) {
         if (thread.joinable()) {
             thread.join();
         }

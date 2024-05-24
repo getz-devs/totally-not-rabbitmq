@@ -93,7 +93,8 @@ void RabbitWorker::startPolling() {
                 json data = json::parse(task.data);
 
                 if (mapping.find(task.func) != mapping.end()) {
-                    std::cout << "RabbitWorker::startPolling - Executing handler for func: " << task.func << std::endl;
+                    std::cout << "RabbitWorker::startPolling - Executing handler for func: " << task.func << ", id: "
+                              << task.id << std::endl;
                     (this->*mapping[task.func])(task.id, data, task.cores);
                 } else {
                     std::cout << "RabbitWorker::startPolling - Function not found: " << task.func << std::endl;
@@ -104,21 +105,6 @@ void RabbitWorker::startPolling() {
                 std::cout << "RabbitWorker::startPolling - Unknown message type" << std::endl;
                 break;
         }
-
-
-//        auto data = (request["data"]);
-//        int taskCores = request["cores"];
-//        std::string func = request["func"];
-//        std::string request_id = request["id"];
-
-//        std::cout << "RabbitWorker::startPolling - Received message with func: " << func << ", request_id: " << request_id << std::endl;
-//
-//        if (mapping.find(func) != mapping.end()) {
-//            std::cout << "RabbitWorker::startPolling - Executing handler for func: " << func << std::endl;
-//            (this->*mapping[func])(request_id, data, taskCores);
-//        } else {
-//            std::cout << "RabbitWorker::startPolling - Function not found: " << func << std::endl;
-//        }
     }
 }
 
@@ -168,7 +154,7 @@ void RabbitWorker::matrixMultiplication(const std::vector<std::vector<int>> &mat
     }
 }
 
-void RabbitWorker::simpleMathHandler(std::string request_id, json data, int taskCores) {
+void RabbitWorker::simpleMathHandler(const std::string &request_id, json data, int taskCores) {
     std::cout << "RabbitWorker::simpleMathHandler - Handling simpleMath for request_id: " << request_id << std::endl;
     int a, b, result;
     try {
@@ -195,7 +181,7 @@ void RabbitWorker::simpleMathHandler(std::string request_id, json data, int task
     std::cout << "RabbitWorker::simpleMathHandler - Result sent for request_id: " << request_id << std::endl;
 }
 
-void RabbitWorker::determinantHandler(std::string request_id, json data, int taskCores) {
+void RabbitWorker::determinantHandler(const std::string &request_id, json data, int taskCores) {
     std::cout << "RabbitWorker::determinantHandler - Handling determinant for request_id: " << id << std::endl;
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
@@ -233,9 +219,9 @@ void RabbitWorker::determinantHandler(std::string request_id, json data, int tas
     std::cout << "RabbitWorker::determinantHandler - Results sent for request_id: " << request_id << std::endl;
 }
 
-void RabbitWorker::matrixMultiplicationHandler(std::string request_id, json data, int taskCores) {
-    std::cout << "RabbitWorker::matrixMultiplicationHandler - Handling matrix multiplication for request_id: " << id
-              << std::endl;
+void RabbitWorker::matrixMultiplicationHandler(const std::string &request_id, json data, int taskCores) {
+    std::cout << "RabbitWorker::matrixMultiplicationHandler - Handling matrix multiplication for request_id: "
+              << request_id << std::endl;
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
 

@@ -182,7 +182,9 @@ void RabbitServer::processClient(Client &client) {
     std::vector<std::thread> threads;
     for (;;) {
         auto receiveMessage = client.connection->receiveMessage();
+#ifdef SERVER_ARCH_DEBUG
         std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
+#endif
 //        json request = json::parse(receiveMessage->getDataAsString());
 //        std::cout << "Received message: " << request.dump() << std::endl;
         std::cout << "start converting" << std::endl;

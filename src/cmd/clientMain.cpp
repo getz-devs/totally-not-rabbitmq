@@ -36,6 +36,36 @@ std::string promptSimpleMathTask() {
     return data.dump();
 }
 
+std::string promptMatrixMultiplicationTask() {
+    int matrixSize;
+    std::cout << "Enter matrix size:" << std::endl;
+    std::cout << "> ";
+    std::cin >> matrixSize;
+
+    // Optimized random matrix generation using pre-allocated memory
+    std::vector<int> randomNumbers(matrixSize * matrixSize * 2);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 99);
+    std::generate(randomNumbers.begin(), randomNumbers.end(), [&]() { return distrib(gen); });
+
+    json data = json::array();
+    int index = 0;
+    for (int i = 0; i < 2; ++i) {
+        json matrixJson = json::array();
+        for (int j = 0; j < matrixSize; ++j) {
+            json rowJson = json::array();
+            for (int k = 0; k < matrixSize; ++k) {
+                rowJson.emplace_back(randomNumbers[index++]);
+            }
+            matrixJson.emplace_back(rowJson);
+        }
+        data.emplace_back(matrixJson);
+    }
+
+    return data.dump();
+}
+
 
 std::string promptMatrixDeterminantTask() {
     int matrixSize, matrixCount;
@@ -45,71 +75,6 @@ std::string promptMatrixDeterminantTask() {
     std::cout << "Enter matrix count:" << std::endl;
     std::cout << "> ";
     std::cin >> matrixCount;
-
-//    std::random_device rd;
-//    std::mt19937 gen(rd());
-//    std::uniform_int_distribution<> distrib(0, 99);
-//    const int totalNumbers = matrixSize * matrixSize * matrixCount;
-//    std::vector<int> randomNumbers;
-//    randomNumbers.reserve(totalNumbers);
-//
-//    auto begin = std::chrono::steady_clock::now();
-//    std::cout << "Start generating random numbers " << std::endl;
-//
-//    for (int i = 0; i < totalNumbers; ++i) {
-//        randomNumbers.push_back(distrib(gen));
-//    }
-//
-//    auto gen_end = std::chrono::steady_clock::now();
-//    std::chrono::duration<double> gen_elapsed = gen_end - begin;
-//    std::cout << "Elapsed time for generating random numbers: " << gen_elapsed.count() << " seconds." << std::endl;
-//
-//    json data = json::array();
-//    auto fill_begin = std::chrono::steady_clock::now();
-//    std::cout << "Start filling matrices " << std::endl;
-//
-//    int index = 0;
-//    for (int i = 0; i < matrixCount; ++i) {
-//        json matrixJson = json::array();
-//        for (int j = 0; j < matrixSize; ++j) {
-//            json rowJson = json::array();
-//            for (int k = 0; k < matrixSize; ++k) {
-//                rowJson.emplace_back(randomNumbers[index++]);
-//            }
-//            matrixJson.emplace_back(rowJson);
-//        }
-//        data.emplace_back(matrixJson);
-//    }
-//    auto fill_end = std::chrono::steady_clock::now();
-//    std::chrono::duration<double> fill_elapsed = fill_end - fill_begin;
-//    std::cout << "Elapsed time for filling matrices: " << fill_elapsed.count() << " seconds." << std::endl;
-//
-//    auto total_end = std::chrono::steady_clock::now();
-//    std::chrono::duration<double> total_elapsed = total_end - begin;
-//    std::cout << "Total elapsed time: " << total_elapsed.count() << " seconds." << std::endl;
-//    return data.dump();
-
-//    json data = json::array();
-//    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-//    std::cout << "Start randoming " << std::endl;
-//    std::random_device rd; // Источник энтропии
-//    std::mt19937 gen(rd()); // Генератор Mersenne Twister
-//    std::uniform_int_distribution<> distrib(0, 99); // Распределение от 0 до 99
-//    for (int i = 0; i < matrixCount; ++i) {
-//        json matrixJson = json::array();
-//        for (int j = 0; j < matrixSize; ++j) {
-//            json rowJson = json::array();
-//            for (int k = 0; k < matrixSize; ++k) {
-//                rowJson.emplace_back(distrib(gen));
-//            }
-//            matrixJson.emplace_back(rowJson);
-//        }
-//        data.emplace_back(matrixJson);
-//    }
-//    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-//    std::chrono::duration<double> elapsed = end - begin;
-//    std::cout << "Elapsed time: " << elapsed.count() << " seconds." << std::endl;
-//    return data.dump();
 
     json data = json::array();
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -130,57 +95,6 @@ std::string promptMatrixDeterminantTask() {
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << std::endl;
     return data.dump();
-
-//    std::vector<std::vector<std::vector<int>>> matrices;
-//
-//    std::cout << "Start randoming" << std::endl;
-//    for (int i = 0; i < matrixCount; i++) {
-//        std::vector<std::vector<int>> matrix;
-//        matrix.resize(matrixSize);
-//        for (int j = 0; j < matrixSize; j++) {
-//            std::vector<int> row;
-//            row.resize(matrixSize);
-//            for (int k = 0; k < matrixSize; k++) {
-//                row.emplace_back(int(rand() % 100));
-//            }
-//            matrix.emplace_back(row);
-//        }
-//        matrices.emplace_back(matrix);
-//    }
-//    std::cout << "End randoming" << std::endl;
-//    return data.dump();
-
-//    std::vector<std::vector<std::vector<int>>> matrices;
-//
-//    std::cout << "Start randoming" << std::endl;
-//    for (int i = 0; i < matrixCount; i++) {
-//        std::vector<std::vector<int>> matrix;
-//        matrix.resize(matrixSize);
-//        for (int j = 0; j < matrixSize; j++) {
-//            std::vector<int> row;
-//            row.resize(matrixSize);
-//            for (int k = 0; k < matrixSize; k++) {
-//                row.push_back(int(rand() % 100));
-//            }
-//            matrix.push_back(row);
-//        }
-//        matrices.push_back(matrix);
-//    }
-//    std::cout << "End randoming" << std::endl;
-//
-//    json data = json::array();
-//    for (auto &matrix: matrices) {
-//        json matrixJson = json::array();
-//        for (auto &row: matrix) {
-//            json rowJson = json::array();
-//            for (int &elem: row) {
-//                rowJson.push_back(elem);
-//            }
-//            matrixJson.push_back(rowJson);
-//        }
-//        data.push_back(matrixJson);
-//    }
-//    return data.dump();
 }
 
 void *receiverThread(void *arg) {
@@ -195,8 +109,8 @@ void *senderThread(void *arg) {
     while (true) {
         std::cout << "Enter task number:" << std::endl;
         std::cout << "1 - simple math" << std::endl;
-        std::cout << "2 - matrix multiplication" << std::endl;
-        std::cout << "3 - bulk simple task" << std::endl;
+        std::cout << "2 - matrix determinant" << std::endl;
+        std::cout << "3 - matrix multiplication" << std::endl;
         std::cout << "0 - exit console" << std::endl;
         std::cout << "> ";
 
@@ -226,26 +140,30 @@ void *senderThread(void *arg) {
                     break;
 
                 case 3:
-                    int t, tasksCount, delay;
-                    std::cout << "Enter tasks count:" << std::endl;
-                    std::cout << "> ";
-                    std::cin >> tasksCount;
-                    std::cout << "Enter delay between tasks:" << std::endl;
-                    std::cout << "> ";
-                    std::cin >> delay;
-                    for (t = 0; t < tasksCount; t++) {
-                        json data;
-                        data["a"] = rand() % 100;
-                        data["b"] = rand() % 100;
-                        int taskId = rand();
-                        client->sendTask(TaskRequest{std::to_string(taskId), "simpleMath", data.dump(), cores});
-                        std::cout << "Task " << taskId << " sent" << std::endl;
-                        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-                    }
-
-                    requestParams = promptMatrixDeterminantTask();
-                    requestFunc = "determinant";
+                    requestParams = promptMatrixMultiplicationTask();
+                    requestFunc = "matrixMultiplication";
                     break;
+
+//                    int t, tasksCount, delay;
+//                    std::cout << "Enter tasks count:" << std::endl;
+//                    std::cout << "> ";
+//                    std::cin >> tasksCount;
+//                    std::cout << "Enter delay between tasks:" << std::endl;
+//                    std::cout << "> ";
+//                    std::cin >> delay;
+//                    for (t = 0; t < tasksCount; t++) {
+//                        json data;
+//                        data["a"] = rand() % 100;
+//                        data["b"] = rand() % 100;
+//                        int taskId = rand();
+//                        client->sendTask(TaskRequest{std::to_string(taskId), "simpleMath", data.dump(), cores});
+//                        std::cout << "Task " << taskId << " sent" << std::endl;
+//                        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+//                    }
+//
+//                    requestParams = promptMatrixDeterminantTask();
+//                    requestFunc = "determinant";
+//                    break;
 
                 case 0:
                     return nullptr;

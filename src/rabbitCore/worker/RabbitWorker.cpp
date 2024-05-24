@@ -159,7 +159,8 @@ int RabbitWorker::determinant(std::vector<std::vector<int>> matrix, int n) {
     return det;
 }
 
-void RabbitWorker::matrixMultiplication(const std::vector<std::vector<int>> &matrixA, const std::vector<std::vector<int>> &matrixB,
+void RabbitWorker::matrixMultiplication(const std::vector<std::vector<int>> &matrixA,
+                                        const std::vector<std::vector<int>> &matrixB,
                                         std::vector<std::vector<int>> &resultMatrix, int row, int col) {
     int colsA = matrixA[0].size();
     for (int k = 0; k < colsA; ++k) {
@@ -232,17 +233,22 @@ void RabbitWorker::determinantHandler(std::string request_id, json data, int tas
     std::cout << "RabbitWorker::determinantHandler - Results sent for request_id: " << request_id << std::endl;
 }
 
-void RabbitWorker::matrixMultiplicationHandler(std::string id, json data, int taskCores) {
-    std::cout << "RabbitWorker::matrixMultiplicationHandler - Handling matrix multiplication for request_id: " << id << std::endl;
+void RabbitWorker::matrixMultiplicationHandler(std::string request_id, json data, int taskCores) {
+    std::cout << "RabbitWorker::matrixMultiplicationHandler - Handling matrix multiplication for request_id: " << id
+              << std::endl;
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
+
+    // засекаем время
+    auto start = std::chrono::high_resolution_clock::now();
 
     std::vector<std::vector<std::vector<int>>> matrices = data.get<std::vector<std::vector<std::vector<int>>>>();
     std::vector<std::vector<int>> matrixA = matrices[0];
     std::vector<std::vector<int>> matrixB = matrices[1];
 
     if (matrixA[0].size() != matrixB.size()) {
-        std::cerr << "RabbitWorker::matrixMultiplicationHandler - Matrix dimensions do not match for multiplication" << std::endl;
+        std::cerr << "RabbitWorker::matrixMultiplicationHandler - Matrix dimensions do not match for multiplication"
+                  << std::endl;
         return;
     }
 
@@ -252,10 +258,11 @@ void RabbitWorker::matrixMultiplicationHandler(std::string id, json data, int ta
 
     for (int row = 0; row < rowsA; ++row) {
         for (int col = 0; col < colsB; ++col) {
-            threads.emplace_back(&RabbitWorker::matrixMultiplication, this, std::ref(matrixA), std::ref(matrixB), std::ref(resultMatrix), row, col);
+            threads.emplace_back(&RabbitWorker::matrixMultiplication, this, std::ref(matrixA), std::ref(matrixB),
+                                 std::ref(resultMatrix), row, col);
 
             if (threads.size() == taskCores || (row == rowsA - 1 && col == colsB - 1)) {
-                for (auto &t : threads) {
+                for (auto &t: threads) {
                     t.join();
                 }
                 threads.clear();
@@ -263,12 +270,24 @@ void RabbitWorker::matrixMultiplicationHandler(std::string id, json data, int ta
         }
     }
 
-    json jResultMatrix = resultMatrix;
-    struct TaskResult taskResult{id, jResultMatrix.dump(), 1};
+    struct TaskResult taskResult = {
+            request_id,
+            json(resultMatrix).dump(),
+            1
+    };
 
-    json response = taskResult;
-    connection->sendMessage(response.dump());
-    std::cout << "RabbitWorker::matrixMultiplicationHandler - Results sent for request_id: " << id << std::endl;
+    Message message = {
+            MessageType::TaskResult,
+            json(taskResult).dump()
+    };
+
+    connection->sendMessage(json(message).dump());
+    std::cout << "RabbitWorker::matrixMultiplicationHandler - Results sent for request_id: " << request_id << std::endl;
+
+    // считаем время выполнения
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "RabbitWorker::matrixMultiplicationHandler - Execution time: " << elapsed.count() << "s" << std::endl;
 }
 
 

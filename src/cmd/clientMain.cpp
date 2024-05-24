@@ -76,24 +76,29 @@ std::string promptMatrixDeterminantTask() {
     std::cout << "> ";
     std::cin >> matrixCount;
 
+    // Optimized random matrix generation using pre-allocated memory
+    std::vector<int> randomNumbers(matrixSize * matrixSize * matrixCount);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 99);
+    std::generate(randomNumbers.begin(), randomNumbers.end(), [&]() { return distrib(gen); });
+
     json data = json::array();
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    int index = 0;
     std::cout << "Start randoming " << std::endl;
     for (int i = 0; i < matrixCount; ++i) {
         json matrixJson = json::array();
         for (int j = 0; j < matrixSize; ++j) {
             json rowJson = json::array();
             for (int k = 0; k < matrixSize; ++k) {
-                rowJson.emplace_back(rand() % 100);
+                rowJson.emplace_back(randomNumbers[index++]);
             }
             matrixJson.emplace_back(rowJson);
         }
         data.emplace_back(matrixJson);
     }
+
     std::cout << "End randoming" << std::endl;
-    // measure end time
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << std::endl;
     return data.dump();
 }
 
@@ -125,7 +130,11 @@ void *senderThread(void *arg) {
 
         std::string requestFunc;
         std::string requestParams;
-        int cores = 1;
+        // enter cores
+        int cores;
+        std::cout << "Enter cores count:" << std::endl;
+        std::cout << "> ";
+        std::cin >> cores;
 
         try {
             switch (taskNum) {

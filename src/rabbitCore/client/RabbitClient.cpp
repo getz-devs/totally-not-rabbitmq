@@ -11,6 +11,7 @@
 #include "protocol/Connection.h"
 #include "DataModel/Client.h"
 #include "Message.h"
+#include <algorithm>
 
 using namespace STIP;
 
@@ -90,7 +91,15 @@ void RabbitClient::receiveResutls() {
         }
 
         json data = json::parse(result.data);
-        std::cout << data.dump(2) << std::endl;
+        std::string pretty = data.dump(2);
+        int count = std::count(pretty.begin(), pretty.end(), '\n');
+
+#define PRETTY_MAX_LINES_THR 35
+        if (count > PRETTY_MAX_LINES_THR) {
+            pretty = data.dump();
+        }
+
+        std::cout << pretty << std::endl;
 
 //        if (data.is_array()) {
 //            for (auto &row: data) {

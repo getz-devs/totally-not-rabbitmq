@@ -121,7 +121,9 @@ void RabbitServer::processWorker(Worker &worker) {
         auto receiveMessage = worker.connection->receiveMessage();
 //        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
         json request = json::parse(receiveMessage->getDataAsString()); // TODO change parse
+#ifdef SERVER_ARCH_DEBUG
         std::cout << "Received message: " << request.dump() << std::endl;
+#endif
         Message message;
         json data;
         try {

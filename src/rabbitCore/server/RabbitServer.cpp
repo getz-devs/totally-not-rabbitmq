@@ -28,16 +28,29 @@ void RabbitServer::startPolling() {
     STIPServer server(*server_socket);
     std::cout << "Server started on port " << port << std::endl;
 
+    std::vector<std::thread> threadsProcessors;
     for (;;) {
         Connection *connection = server.acceptConnection();
+        if (connection == nullptr) break;
         std::cout << "Connection accepted\n\n" << std::endl;
-        std::thread(&RabbitServer::processConnection, this, connection).detach();
+
+
+        //std::thread(&RabbitServer::processConnection, this, connection).detach();
+        // as in up string but with addding to vector
+
+        threadsProcessors.emplace_back(&RabbitServer::processConnection, this, connection);
     }
+
+    std::cout << "Server thread finished\n\n" << std::endl;
+    // hard stopping
+    server_socket->close();
+    server_socket->shutdown(udp::socket::shutdown_both);
+
+    // exit program
+    exit(0);
 }
 
 void RabbitServer::processConnection(STIP::Connection *connection) {
-    std::cout << "Connection accepted\n\n" << std::endl;
-
     auto receiveMessage = connection->receiveMessage();
     json request = json::parse(receiveMessage->getDataAsString());
 

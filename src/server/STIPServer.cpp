@@ -17,6 +17,7 @@ namespace STIP {
             udp::endpoint remote_endpoint;
             size_t length = this->socket->receive_from(boost::asio::buffer(packet), remote_endpoint, 0, error);
             if (error && error != boost::asio::error::message_size || length == 0) {
+                std::cerr << "Receive failed in acceptConnection: " << error.message() << std::endl;
                 return nullptr;
 //            throw boost::system::system_error(error);
             }

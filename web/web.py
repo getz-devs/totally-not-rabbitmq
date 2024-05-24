@@ -14,8 +14,8 @@ socketio = SocketIO(app)
 
 # Обратите внимание на использование os.path.join и raw строки для путей
 md_files = [
-    r"C:\Projects\suai\totally-not-rabbitmq\cmake-build-release-mingw-ucrt64\src\tasks.md",
-    r"C:\Projects\suai\totally-not-rabbitmq\cmake-build-release-mingw-ucrt64\src\users.md"
+    fr"{sys.argv[1]}\tasks.md",
+    fr"{sys.argv[1]}\users.md"
 ]
 data1 = ""
 data2 = ""

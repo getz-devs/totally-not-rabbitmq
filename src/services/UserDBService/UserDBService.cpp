@@ -10,25 +10,19 @@
 
 void UserDBService::addClient(const Client &client) {
     clients.push_back(client);
-#ifdef SERVER_LOG_FILES
     saveStateToFile("users.md");
-#endif
 };
 
 void UserDBService::addWorker(const Worker &worker) {
     workers.push_back(worker);
-#ifdef SERVER_LOG_FILES
     saveStateToFile("users.md");
-#endif
 };
 
 void UserDBService::removeClient(const Client &client) {
     for (auto it = clients.begin(); it != clients.end(); it++) {
         if (it->id == client.id) {
             clients.erase(it);
-#ifdef SERVER_LOG_FILES
             saveStateToFile("users.md");
-#endif
             return;
         }
     }
@@ -38,9 +32,7 @@ void UserDBService::removeWorker(const Worker &worker) {
     for (auto it = workers.begin(); it != workers.end(); it++) {
         if (it->id == worker.id) {
             workers.erase(it);
-#ifdef SERVER_LOG_FILES
             saveStateToFile("users.md");
-#endif
             return;
         }
     }
@@ -65,9 +57,7 @@ Worker UserDBService::findMostFreeWorker(int requiredCores) {
 Client UserDBService::findClientByID(const std::string &id) {
     for (auto &client: clients) {
         if (client.id == id) {
-#ifdef SERVER_LOG_FILES
             saveStateToFile("users.md");
-#endif
             return client;
         }
     }
@@ -77,9 +67,7 @@ Client UserDBService::findClientByID(const std::string &id) {
 Worker UserDBService::findWorkerByID(const std::string &id) {
     for (auto &worker: workers) {
         if (worker.id == id) {
-#ifdef SERVER_LOG_FILES
             saveStateToFile("users.md");
-#endif
             return worker;
         }
     }
@@ -90,9 +78,7 @@ void UserDBService::updateWorker(const Worker &worker) {
     for (auto &w: workers) {
         if (w.id == worker.id) {
             w = worker;
-#ifdef SERVER_LOG_FILES
             saveStateToFile("users.md");
-#endif
 
             return;
         }
@@ -103,26 +89,18 @@ void UserDBService::updateWorker(const Worker &worker) {
 void UserDBService::modifyWorkerUsedCores(const std::string &id, int cores, bool increase) {
     for (auto &worker: workers) {
         if (worker.id == id) {
-#ifdef SERVER_ARCH_DEBUG
             std::cout << "Update cores: Worker before has used cores: " << worker.usedCores << std::endl;
-#endif
             if (increase) {
                 worker.usedCores += cores;
             } else {
                 worker.usedCores -= cores;
             }
-#ifdef SERVER_ARCH_DEBUG
             std::cout << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores << std::endl;
-#endif
             if (worker.usedCores < 0) {
-#ifdef SERVER_ARCH_DEBUG
                 std::cerr << "[!] Worker " << worker.id << " used cores is negative. Resetting to 0." << std::endl;
-#endif
                 worker.usedCores = 0;
             }
-#ifdef SERVER_LOG_FILES
             saveStateToFile("users.md");
-#endif
             return;
         }
     }

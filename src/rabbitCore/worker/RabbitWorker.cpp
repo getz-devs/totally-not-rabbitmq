@@ -44,6 +44,7 @@ void RabbitWorker::init() {
 
     mapping["simpleMath"] = &RabbitWorker::simpleMathHandler;
     mapping["determinant"] = &RabbitWorker::determinantHandler;
+    mapping["matrixMultiplication"] = &RabbitWorker::matrixMultiplicationHandler;
 
     // Register worker
     if (connection) {

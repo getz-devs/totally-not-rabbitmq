@@ -352,4 +352,3 @@ namespace STIP {
         return nullptr;
     }
 }
-

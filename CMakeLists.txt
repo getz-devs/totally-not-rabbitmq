@@ -32,6 +32,7 @@ CPMAddPackage(
 
 find_package(SqliteOrm REQUIRED)
 find_package(argparse REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # Include directories
 include_directories(src)

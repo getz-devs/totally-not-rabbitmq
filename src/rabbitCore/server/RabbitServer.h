@@ -6,29 +6,50 @@
 #define RABBIT_RABBITSERVER_H
 
 #include <boost/asio.hpp>
-#include <sqlite_orm/sqlite_orm.h>
 #include "protocol/Connection.h"
+#include "services/TaskService/TaskService.h"
+#include "services/UserDBService/UserDBService.h"
+#include "services/TaskQueue/TaskQueue.h"
+#include <nlohmann/json.hpp>
 
 using boost::asio::ip::udp;
-using namespace sqlite_orm;
+using json = nlohmann::json;
 
 class RabbitServer {
-    public:
-        RabbitServer(int port);
+public:
+    RabbitServer(int port);
 
-        void init();
-        void startPolling();
+    void init();
 
-        void processConnection(STIP::Connection *connection);
+    void startPolling();
 
-        ~RabbitServer() {
-            delete server_socket;
-        }
-    private:
-        int port;
-        boost::asio::io_context io_context;
-        udp::socket* server_socket;
+    void processConnection(STIP::Connection *connection);
 
+    ~RabbitServer() {
+        delete server_socket;
+    }
+
+private:
+    int port;
+    boost::asio::io_context io_context;
+    udp::socket *server_socket{};
+
+    TaskService taskService;
+    UserDBService userDBService;
+    TaskQueue pendingTasks;
+
+    udp::resolver *resolver;
+    udp::endpoint *server_endpoint;
+
+    void processWorker(Worker &worker);
+
+    void processClient(Client &client);
+
+    void processTask(Task &task);
+
+    void checkTaskQueue(Worker &worker);
+
+    std::string logTime();
 };
 
 

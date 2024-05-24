@@ -1,0 +1,63 @@
+<!-- templates/index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Rabbit Stats</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #3a256b; /* Темно-фиолетовый фон */
+            color: #ffffff; /* Белый текст */
+        }
+        .card {
+            background: linear-gradient(to bottom right, #1a0b34, #3a256b); /* Темно-синий до фиолетового градиент */
+            border-radius: 20px; /* Более закругленные углы */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень */
+            border: 1px solid #4d2a7d; /* Бордюр */
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            color: #ffffff; /* Белый текст */
+            border-collapse: collapse; /* Убираем разделительные линии между ячейками */
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #4d2a7d; /* Бордюр с ячейкой ниже */
+        }
+        th {
+            background-color: #1a0b34; /* Фоновый цвет заголовков */
+        }
+        tr:nth-child(even) {
+            background-color: #2c1d4a; /* Фоновый цвет четных строк */
+        }
+        tr:hover {
+            background-color: #422e6e; /* Фоновый цвет при наведении на строку */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 style="margin-bottom: 20px;">Rabbit logger </h1>
+    <div class="card">
+        <div class="card-body" id="table-container1">{{ table1|safe }}</div>
+    </div>
+    <div class="card">
+        <div class="card-body" id="table-container2">{{ table2|safe }}</div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script type="text/javascript">
+    var socket = io();
+    socket.on('update', function(msg) {
+        document.getElementById('table-container1').innerHTML = msg.data1;
+        document.getElementById('table-container2').innerHTML = msg.data2;
+    });
+</script>
+</body>
+</html>

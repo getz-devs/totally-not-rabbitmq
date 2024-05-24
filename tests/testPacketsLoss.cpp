@@ -162,7 +162,7 @@ TEST(Protocol, MessageTransferingWithProxyDropDataPackets) {
         }
 
         cout << "Server thread finished" << endl;
-    }); // TODO: fix
+    });
 
     // sleep 200ms
     std::this_thread::sleep_for(std::chrono::milliseconds(200));

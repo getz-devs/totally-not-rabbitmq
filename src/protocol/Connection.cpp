@@ -1,7 +1,3 @@
-//
-// Created by Serge on 08.03.2024.
-//
-
 #include "Connection.h"
 #include "protocol/STIP.h"
 #include "protocol/Session.h"

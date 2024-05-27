@@ -1,7 +1,3 @@
-//
-// Created by Serge on 23.05.2024.
-//
-
 #ifndef RABBIT_UDPPROXY_H
 #define RABBIT_UDPPROXY_H
 

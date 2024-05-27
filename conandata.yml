@@ -4,4 +4,3 @@
 requirements:
   - "nlohmann_json/3.11.3"
   - "argparse/3.0"
-  - "sqlite_orm/1.8.2"

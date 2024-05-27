@@ -1,7 +1,3 @@
-//
-// Created by Serge on 12.04.2024.
-//
-
 #ifndef RABBIT_COMMANDS_H
 #define RABBIT_COMMANDS_H
 #include <ostream>

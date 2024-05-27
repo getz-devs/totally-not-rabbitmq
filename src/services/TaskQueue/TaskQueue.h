@@ -1,7 +1,3 @@
-//
-// Created by Potato on 22.05.24.
-//
-
 #ifndef RABBIT_TASKQUEUE_H
 #define RABBIT_TASKQUEUE_H
 

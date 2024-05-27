@@ -1,7 +1,3 @@
-//
-// Created by Serge on 11.04.2024.
-//
-
 #include "SessionKiller.h"
 
 #include <utility>

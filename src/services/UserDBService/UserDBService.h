@@ -1,7 +1,3 @@
-//
-// Created by Potato on 12.04.24.
-//
-
 #ifndef RABBIT_USERDBSERVICE_H
 #define RABBIT_USERDBSERVICE_H
 

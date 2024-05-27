@@ -1,7 +1,3 @@
-//
-// Created by Serge on 16.03.2024.
-//
-
 #include "Session.h"
 #include <boost/asio.hpp>
 

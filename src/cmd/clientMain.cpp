@@ -1,7 +1,3 @@
-//
-// Created by Serge on 23.03.2024.
-//
-
 #include "rabbitCore/client/RabbitClient.h"
 #include "DataModel/TaskRequest.h"
 #include <argparse/argparse.hpp>
@@ -130,7 +126,6 @@ void *senderThread(void *arg) {
 
         std::string requestFunc;
         std::string requestParams;
-        // enter cores
         int cores;
         std::cout << "Enter cores count:" << std::endl;
         std::cout << "> ";
@@ -153,27 +148,6 @@ void *senderThread(void *arg) {
                     requestFunc = "matrixMultiplication";
                     break;
 
-//                    int t, tasksCount, delay;
-//                    std::cout << "Enter tasks count:" << std::endl;
-//                    std::cout << "> ";
-//                    std::cin >> tasksCount;
-//                    std::cout << "Enter delay between tasks:" << std::endl;
-//                    std::cout << "> ";
-//                    std::cin >> delay;
-//                    for (t = 0; t < tasksCount; t++) {
-//                        json data;
-//                        data["a"] = rand() % 100;
-//                        data["b"] = rand() % 100;
-//                        int taskId = rand();
-//                        client->sendTask(TaskRequest{std::to_string(taskId), "simpleMath", data.dump(), cores});
-//                        std::cout << "Task " << taskId << " sent" << std::endl;
-//                        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-//                    }
-//
-//                    requestParams = promptMatrixDeterminantTask();
-//                    requestFunc = "determinant";
-//                    break;
-
                 case 0:
                     return nullptr;
 
@@ -193,6 +167,9 @@ void *senderThread(void *arg) {
 
 int main(int argc, const char *argv[]) {
     argparse::ArgumentParser program("RabbitClient");
+    program.add_description("RabbitClient");
+    program.add_epilog("RabbitClient is a client for Rabbit project");
+
     program.add_argument("-i", "--id")
             .help("Worker ID")
             .default_value("1234");
@@ -203,8 +180,6 @@ int main(int argc, const char *argv[]) {
             .help("Server Port")
             .default_value(12345)
             .action([](const std::string &value) { return std::stoi(value); });
-    program.add_description("RabbitClient");
-    program.add_epilog("RabbitClient is a client for Rabbit project");
 
     try {
         program.parse_args(argc, argv);

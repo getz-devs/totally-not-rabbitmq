@@ -1,7 +1,3 @@
-//
-// Created by Serge on 05.03.2024.
-//
-
 #include "STIPServer.h"
 
 namespace STIP {

@@ -1,7 +1,3 @@
-//
-// Created by Serge on 23.03.2024.
-//
-
 #ifndef RABBIT_RABBITSERVER_H
 #define RABBIT_RABBITSERVER_H
 
@@ -49,7 +45,7 @@ private:
 
     void checkTaskQueue(Worker &worker);
 
-    std::string logTime();
+    static std::string logTime();
 };
 
 

@@ -30,7 +30,6 @@ CPMAddPackage(
         OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_INCLUDE_LIBRARIES container\\\;asio" # Note the escapes!
 )
 
-find_package(SqliteOrm REQUIRED)
 find_package(argparse REQUIRED)
 find_package(nlohmann_json REQUIRED)
 

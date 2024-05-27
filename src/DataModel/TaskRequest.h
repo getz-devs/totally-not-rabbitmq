@@ -1,7 +1,3 @@
-//
-// Created by Potato on 11.04.24.
-//
-
 #ifndef RABBIT_TASKREQUEST_H
 #define RABBIT_TASKREQUEST_H
 

@@ -1,6 +1,3 @@
-//
-// Created by Serge on 23.03.2024.
-//
 #include "protocol/STIP.h"
 #include "server/STIPServer.h"
 #include "protocol/Connection.h"
@@ -12,7 +9,6 @@
 #include <iomanip> // For std::put_time
 
 using namespace STIP;
-
 using boost::asio::ip::udp;
 
 RabbitServer::RabbitServer(int port) {
@@ -34,16 +30,13 @@ void RabbitServer::startPolling() {
     for (;;) {
         Connection *connection = server.acceptConnection();
         if (connection == nullptr) break;
-        std::cout << "Connection accepted\n\n" << std::endl;
 
-
-        //std::thread(&RabbitServer::processConnection, this, connection).detach();
-        // as in up string but with addding to vector
-
+        std::cout << "Connection accepted" << std::endl;
         threadsProcessors.emplace_back(&RabbitServer::processConnection, this, connection);
     }
 
-    std::cout << "Server thread finished\n\n" << std::endl;
+    std::cout << "Server thread finished" << std::endl;
+
     // hard stopping
     server_socket->close();
     server_socket->shutdown(udp::socket::shutdown_both);
@@ -59,6 +52,7 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
 #ifdef SERVER_ARCH_DEBUG
     std::cout << "Received message: " << request.dump() << std::endl;
 #endif
+
     Message message;
     json data;
 
@@ -74,6 +68,7 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
         case MessageType::RegisterClient: {
             std::cout << logTime() << "Received Client registration request\n";
             Client client;
+
             try {
                 client = data.template get<Client>();
                 client.connection = connection;
@@ -99,6 +94,7 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
         case MessageType::RegisterWorker: {
             std::cout << logTime() << "Received Worker registration request\n";
             Worker worker;
+
             try {
                 worker = data.template get<Worker>();
                 worker.connection = connection;
@@ -126,7 +122,7 @@ void RabbitServer::processConnection(STIP::Connection *connection) {
             break;
     }
 
-//    connection->kill();
+    delete connection;
     delete receiveMessage;
     delete connection;
 }
@@ -136,13 +132,15 @@ void RabbitServer::processWorker(Worker &worker) {
 
     for (;;) {
         auto receiveMessage = worker.connection->receiveMessage();
-//        std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
         json request = json::parse(receiveMessage->getDataAsString()); // TODO change parse
+
 #ifdef SERVER_ARCH_DEBUG
         std::cout << "Received message: " << request.dump() << std::endl;
 #endif
+
         Message message;
         json data;
+
         try {
             message = request.template get<Message>();
             data = json::parse(message.data);
@@ -176,7 +174,6 @@ void RabbitServer::processWorker(Worker &worker) {
                 userDBService.modifyWorkerUsedCores(task.worker_hash_id, task.cores, false);
 
                 Client client = userDBService.findClientByID(task.client_hash_id);
-
                 Message result_message = {
                         MessageType::TaskResult,
                         message.data
@@ -190,7 +187,6 @@ void RabbitServer::processWorker(Worker &worker) {
                 }
 
                 std::cout << logTime() << "Sent TaskResult to client: " << client.id << std::endl;
-
                 checkTaskQueue(worker);
                 break;
             }
@@ -204,21 +200,24 @@ void RabbitServer::processWorker(Worker &worker) {
 
 void RabbitServer::processClient(Client &client) {
     std::vector<std::thread> threads;
+
     for (;;) {
         auto receiveMessage = client.connection->receiveMessage();
+
 #ifdef SERVER_ARCH_DEBUG
         std::cout << "Received message: " << receiveMessage->getDataAsString() << std::endl;
 #endif
-//        json request = json::parse(receiveMessage->getDataAsString());
-//        std::cout << "Received message: " << request.dump() << std::endl;
+
         std::cout << "start converting" << std::endl;
         auto rawMessage = receiveMessage->getData();
         char *payload = static_cast<char *>(rawMessage.first);
+
         std::cout << "start parsing" << std::endl;
         json request = json::parse(payload, payload + rawMessage.second);
 
         Message message;
         json data;
+
         try {
             std::cout << "Loaded to request" << std::endl;
             message = request.template get<Message>();
@@ -232,32 +231,32 @@ void RabbitServer::processClient(Client &client) {
         switch (message.action) {
             case MessageType::TaskRequest: {
                 std::cout << logTime() << "Received TaskRequest from client: " << client.id << std::endl;
-                struct TaskRequest taskRequest;
+                struct TaskRequest tRequest;
+
                 try {
-//                    std::cout << "Task data: " << data.dump() << std::endl;
                     std::cout << "Loaded to data2" << std::endl;
-                    taskRequest = data.template get<struct TaskRequest>();
+                    tRequest = data.template get<struct TaskRequest>();
                     std::cout << "Loaded to taskRequest" << std::endl;
-                    std::cout << logTime() << "Task added: " << taskRequest.id << " (Cores: " << taskRequest.cores
-                              << ")"
-                              << std::endl;
+                    std::cout << logTime() << "Task " << tRequest.id << " added (Cores: " << tRequest.cores << ")";
+                    std::cout << std::endl;
                 } catch (json::exception &e) {
                     std::cerr << logTime() << "Error parsing task: " << e.what() << std::endl;
                     break;
                 }
+
                 Task task = {
-                        taskRequest.id,
-                        taskRequest.func,
-                        taskRequest.data,
+                        tRequest.id,
+                        tRequest.func,
+                        tRequest.data,
                         "",
-                        taskRequest.cores,
+                        tRequest.cores,
                         TaskStatus::Queued,
                         "",
                         client.id
                 };
+
                 try {
                     taskService.addTask(task);
-//                    std::thread(&RabbitServer::processTask, this, std::ref(task)).detach();
                     threads.emplace_back([this, task]() mutable {
                         this->processTask(task);
                     });
@@ -273,9 +272,7 @@ void RabbitServer::processClient(Client &client) {
         }
     }
     for (auto &thread: threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
+        if (thread.joinable()) thread.join();
     }
 }
 
@@ -304,12 +301,6 @@ void RabbitServer::checkTaskQueue(Worker &worker) {
 
         // update worker
         userDBService.modifyWorkerUsedCores(worker.id, pendingTask.cores, true);
-
-//        worker.usedCores += pendingTask.cores;
-//        std::cout << logTime() << "Update cores: increase " << pendingTask.cores << std::endl;
-//        userDBService.updateWorker(worker);
-//        std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores
-//                  << std::endl;
 
         pendingTask.worker_hash_id = worker.id;
         pendingTask.status = TaskStatus::SentToWorker;
@@ -346,12 +337,6 @@ void RabbitServer::processTask(Task &task) {
 
     // update worker
     userDBService.modifyWorkerUsedCores(worker.id, task.cores, true);
-
-//    worker.usedCores += task.cores;
-//    std::cout << logTime() << "Update cores: increase " << task.cores << std::endl;
-//    userDBService.updateWorker(worker);
-//    std::cout << logTime() << "Update cores: Worker " << worker.id << " used cores: " << worker.usedCores << std::endl;
-
     struct TaskRequest taskRequest = {
             task.id,
             task.func,
@@ -371,13 +356,13 @@ void RabbitServer::processTask(Task &task) {
         std::cerr << logTime() << "[processTask] Error sending task to worker: " << e.what() << std::endl;
         return;
     }
+
     std::cout << logTime() << "Task " << task.id << " sent to worker " << worker.id << std::endl;
 }
 
 std::string RabbitServer::logTime() {
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
-
     std::stringstream ss;
     ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X: ");
     return ss.str();

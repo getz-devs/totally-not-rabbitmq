@@ -1,7 +1,3 @@
-//
-// Created by Serge on 23.03.2024.
-//
-
 #include "RabbitClient.h"
 
 #include <utility>
@@ -14,8 +10,9 @@
 #include <algorithm>
 
 using namespace STIP;
-
 using boost::asio::ip::udp;
+
+#define PRETTY_MAX_LINES_THR 35
 
 RabbitClient::RabbitClient(std::string id, std::string host, int port) {
     this->id = std::move(id);
@@ -39,14 +36,9 @@ void RabbitClient::init() {
     // Register client
     if (connection) {
         // Create Client object to send
-        Client clientInfo = {
-                id,
-                connection
-        };
-
+        Client clientInfo = {id, connection};
         nlohmann::json clientJson;
         to_json(clientJson, clientInfo);
-
         Message message = {
                 MessageType::RegisterClient,
                 clientJson.dump()
@@ -54,27 +46,11 @@ void RabbitClient::init() {
 
         nlohmann::json messageJson;
         to_json(messageJson, message);
-
         std::string msg = messageJson.dump();
         connection->sendMessage(msg);
     } else {
         std::cerr << "Error: Failed to connect to server." << std::endl;
     }
-
-////////////
-
-//
-//    try {
-//        Message test = {
-//                MessageType::Invalid,
-//                "test"
-//        };
-//        json testJson = test;
-//        connection->sendMessage(testJson.dump());
-//    } catch (std::exception e) {
-//        std::cerr << "Error sending Test message 2: " << e.what() << std::endl;
-//        return;
-//    }
 }
 
 void RabbitClient::receiveResutls() {
@@ -83,6 +59,7 @@ void RabbitClient::receiveResutls() {
         auto message = json::parse(received->getDataAsString()).template get<struct Message>();
         auto item = json::parse(message.data);
         struct TaskResult result;
+
         try {
             result = item.template get<struct TaskResult>();
         } catch (json::exception &e) {
@@ -94,21 +71,11 @@ void RabbitClient::receiveResutls() {
         std::string pretty = data.dump(2);
         int count = std::count(pretty.begin(), pretty.end(), '\n');
 
-#define PRETTY_MAX_LINES_THR 35
         if (count > PRETTY_MAX_LINES_THR) {
             pretty = data.dump();
         }
 
         std::cout << pretty << std::endl;
-
-//        if (data.is_array()) {
-//            for (auto &row: data) {
-//                std::cout << row << std::endl;
-//            }
-//        } else {
-//            std::cout << data << std::endl;
-//
-//        }
     }
 }
 

@@ -1,7 +1,3 @@
-//
-// Created by Serge on 23.05.2024.
-//
-
 #include "UdpProxy.h"
 
 #include <iostream>

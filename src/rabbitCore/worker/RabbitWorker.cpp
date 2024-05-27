@@ -1,12 +1,6 @@
-//
-// Created by Serge on 23.03.2024.
-//
-
 #include "RabbitWorker.h"
-
 #include <utility>
 #include "protocol/STIP.h"
-#include "server/STIPServer.h"
 #include "protocol/Connection.h"
 #include "client/STIPClient.h"
 #include "DataModel/TaskResult.h"
@@ -16,12 +10,10 @@
 
 using boost::asio::ip::udp;
 
-//typedef void (RabbitWorker::*func_type)(void);
-//typedef std::map<std::string, func_type> func_map_type;
-
 RabbitWorker::RabbitWorker(std::string id, std::string host, int port, int cores) {
     std::cout << "RabbitWorker::RabbitWorker - Initializing with id: " << id << ", host: " << host << ", port: " << port
               << ", cores: " << cores << std::endl;
+
     this->id = std::move(id);
     this->host = std::move(host);
     this->port = port;
@@ -30,12 +22,16 @@ RabbitWorker::RabbitWorker(std::string id, std::string host, int port, int cores
 
 void RabbitWorker::init() {
     std::cout << "RabbitWorker::init - Initialization started" << std::endl;
+
     resolver = new udp::resolver(io_context);
     auto endpoints = resolver->resolve(udp::v4(), host, std::to_string(port));
-    server_endpoint = new udp::endpoint(*endpoints.begin());
 
+    server_endpoint = new udp::endpoint(*endpoints.begin());
     server_socket = new udp::socket(io_context);
     server_socket->open(udp::v4());
+
+    udp::socket::receive_buffer_size bigbufsize(INT_MAX);
+    server_socket->set_option(bigbufsize);
 
     client = new STIP::STIPClient(*server_socket);
     client->startListen();
@@ -49,17 +45,10 @@ void RabbitWorker::init() {
     // Register worker
     if (connection) {
         std::cout << "RabbitWorker::init - Connection established" << std::endl;
-        // Create Worker object to send
-        Worker worker = {
-                id,
-                cores,
-                0,
-                nullptr
-        };
 
+        Worker worker = {id, cores, 0, nullptr};
         nlohmann::json workerJson;
         to_json(workerJson, worker);
-
         Message message = {
                 MessageType::RegisterWorker,
                 workerJson.dump()
@@ -80,32 +69,46 @@ void RabbitWorker::startPolling() {
     std::cout << "RabbitWorker::startPolling - Polling started" << std::endl;
     for (;;) {
         STIP::ReceiveMessageSession *received = connection->receiveMessage();
-//        std::cout << "RabbitWorker::startPolling - Received message: " << received->getDataAsString() << std::endl;
-        json request = json::parse(received->getDataAsString());
-//        std::cout << "RabbitWorker::startPolling - Received message: " << request.dump() << std::endl;
 
+#ifdef SERVER_ARCH_DEBUG
+        std::cout << "RabbitWorker::startPolling - Received message: " << received->getDataAsString() << std::endl;
+#endif
+
+        json request = json::parse(received->getDataAsString());
         Message message = request.get<Message>();
         json messageData = json::parse(message.data);
+
         switch (message.action) {
             case MessageType::TaskRequest: {
                 std::cout << "RabbitWorker::startPolling - Received task request" << std::endl;
                 struct TaskRequest task = messageData.get<struct TaskRequest>();
                 json data = json::parse(task.data);
 
-                if (mapping.find(task.func) != mapping.end()) {
-                    std::cout << "RabbitWorker::startPolling - Executing handler for func: " << task.func << ", id: "
-                              << task.id << std::endl;
-                    (this->*mapping[task.func])(task.id, data, task.cores);
-                } else {
-                    std::cout << "RabbitWorker::startPolling - Function not found: " << task.func << std::endl;
-                }
+                // Call a separate function to handle the task asynchronously
+                handleTaskRequest(task.id, task.func, data, task.cores);
                 break;
             }
+
             default:
                 std::cout << "RabbitWorker::startPolling - Unknown message type" << std::endl;
                 break;
         }
     }
+}
+
+void RabbitWorker::handleTaskRequest(const std::string &request_id, const std::string &func, const json &data,
+                                     int taskCores) {
+    if (mapping.find(func) == mapping.end()) {
+        std::cout << "RabbitWorker::handleTaskRequest - Function not found: " << func << std::endl;
+        return;
+    }
+
+    // Create a new thread for each task request
+    std::thread taskThread([this, request_id, func, data, taskCores]() {
+        (this->*mapping[func])(request_id, data, taskCores);
+    });
+
+    taskThread.detach();
 }
 
 // worker function implementations
@@ -187,7 +190,6 @@ void RabbitWorker::determinantHandler(const std::string &request_id, json data, 
     threads.reserve(taskCores);
 
     std::vector<std::vector<std::vector<int>>> matrices = data.get<std::vector<std::vector<std::vector<int>>>>();
-
     std::vector<int> results(matrices.size());
 
     for (int i = 0; i < matrices.size(); ++i) {
@@ -197,9 +199,7 @@ void RabbitWorker::determinantHandler(const std::string &request_id, json data, 
         });
 
         if (threads.size() == taskCores || i == matrices.size() - 1) {
-            for (auto &t: threads) {
-                t.join();
-            }
+            for (auto &t: threads) t.join();
             threads.clear();
         }
     }
@@ -225,7 +225,6 @@ void RabbitWorker::matrixMultiplicationHandler(const std::string &request_id, js
     std::vector<std::thread> threads;
     threads.reserve(taskCores);
 
-    // засекаем время
     auto start = std::chrono::high_resolution_clock::now();
 
     std::vector<std::vector<std::vector<int>>> matrices = data.get<std::vector<std::vector<std::vector<int>>>>();
@@ -248,9 +247,7 @@ void RabbitWorker::matrixMultiplicationHandler(const std::string &request_id, js
                                  std::ref(resultMatrix), row, col);
 
             if (threads.size() == taskCores || (row == rowsA - 1 && col == colsB - 1)) {
-                for (auto &t: threads) {
-                    t.join();
-                }
+                for (auto &t: threads) t.join();
                 threads.clear();
             }
         }

@@ -1,7 +1,3 @@
-//
-// Created by Serge on 07.03.2024.
-//
-
 #include "protocol/STIP.h"
 #include "server/STIPServer.h"
 #include "protocol/Connection.h"

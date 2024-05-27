@@ -1,7 +1,3 @@
-//
-// Created by Potato on 12.04.24.
-//
-
 #include "UserDBService.h"
 
 #include <fstream>

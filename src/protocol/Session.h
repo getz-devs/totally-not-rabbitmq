@@ -1,7 +1,3 @@
-//
-// Created by Serge on 16.03.2024.
-//
-
 #ifndef RABBIT_SESSION_H
 #define RABBIT_SESSION_H
 

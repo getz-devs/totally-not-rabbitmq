@@ -1,7 +1,3 @@
-//
-// Created by Potato on 12.04.24.
-//
-
 #ifndef RABBIT_WORKER_H
 #define RABBIT_WORKER_H
 

@@ -1,7 +1,3 @@
-//
-// Created by Serge on 08.03.2024.
-//
-
 #ifndef RABBIT_CONNECTION_H
 #define RABBIT_CONNECTION_H
 

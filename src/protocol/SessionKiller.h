@@ -1,7 +1,3 @@
-//
-// Created by Serge on 11.04.2024.
-//
-
 #ifndef RABBIT_SESSIONKILLER_H
 #define RABBIT_SESSIONKILLER_H
 

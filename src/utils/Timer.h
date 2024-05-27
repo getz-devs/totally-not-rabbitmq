@@ -1,7 +1,3 @@
-//
-// Created by Serge on 08.03.2024.
-//
-
 #ifndef RABBIT_TIMER_H
 #define RABBIT_TIMER_H
 

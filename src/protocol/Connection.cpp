@@ -1,7 +1,3 @@
-//
-// Created by Serge on 08.03.2024.
-//
-
 #include "Connection.h"
 #include "protocol/STIP.h"
 #include "protocol/Session.h"
@@ -223,31 +219,34 @@ namespace STIP {
                     sessionManager->addSession(tempMsgSession);
                     tempMsgSession->processIncomingPacket(packet);
                     session_id = packet.header.session_id;
-                    sessionKiller.registerSessionTimeout(
-                            packet.header.session_id,
-                            20000,
-                            [this, session_id] {
-                                auto *temp = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(
-                                        session_id));
-                                sessionManager->deleteSessionById(session_id);
-                                delete temp;
-                            }
-                    );
+//                    sessionKiller.registerSessionTimeout(
+//                            packet.header.session_id,
+//                            20000,
+//                            [this, session_id] {
+//                                auto *temp = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(
+//                                        session_id));
+//                                std::cout << "Deleting session " << session_id << std::endl;
+//                                // sleep 5 seconds
+//                                std::this_thread::sleep_for(std::chrono::seconds(5));
+//                                sessionManager->deleteSessionById(session_id);
+//                                delete temp;
+//                            }
+//                    ); TODO: BUG Это вызывает странные ошибки во время работы. Временно без клинера CRITICAL
                     break;
 
                 case Command::MSG_SEND_DATA_PART:
                     tempReceiveSession = dynamic_cast<ReceiveMessageSession *>(sessionManager->getSession(
                             packet.header.session_id));
-                    if (tempReceiveSession != nullptr) {
-                        tempReceiveSession->processIncomingPacket(packet);
-                        sessionKiller.resetSessionTimeout(packet.header.session_id);
+                    if (tempReceiveSession == nullptr) break;
 
-                    }
+                    tempReceiveSession->processIncomingPacket(packet);
+                    sessionKiller.resetSessionTimeout(packet.header.session_id);
 
                     if (tempReceiveSession->getStatus() == 5) {
                         if (tempReceiveSession->dispatched) break;
                         tempReceiveSession->dispatched = true;
                         std::lock_guard<std::mutex> lock(messageMtx);
+
                         messageQueue.push(tempReceiveSession);
 #ifdef STIP_PROTOCOL_DEBUG
                         std::cout << "Message received, should be notified" << std::endl;

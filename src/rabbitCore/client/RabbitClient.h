@@ -1,7 +1,3 @@
-//
-// Created by Serge on 23.03.2024.
-//
-
 #ifndef RABBIT_RabbitClient_H
 #define RABBIT_RabbitClient_H
 
@@ -19,24 +15,24 @@ public:
     RabbitClient(std::string id, std::string host, int port);
 
     void init();
+
     void receiveResutls();
+
     void sendTask(TaskRequest t);
 
     ~RabbitClient() {
         delete server_socket;
     }
 
-    void testMessage(std::string msg);
-
 private:
-    STIP::STIPClient *client;
-
+    int port;
     std::string id;
     std::string host;
-    int port;
-    STIP::Connection *connection{};
-    udp::socket *server_socket{};
 
+    STIP::STIPClient *client;
+    STIP::Connection *connection{};
+
+    udp::socket *server_socket{};
     udp::resolver *resolver;
     udp::endpoint *server_endpoint;
 

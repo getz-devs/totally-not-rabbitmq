@@ -1,7 +1,3 @@
-//
-// Created by Serge on 20.05.2024.
-//
-
 #include <gtest/gtest.h>
 #include <iostream>
 #include "protocol/Session.h"

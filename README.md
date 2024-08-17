@@ -1,3 +1,6 @@
+# Paper of this project
+[Paper link](project-detail.pdf)
+
 # totally-not-rabbitmq
 totally-not-rabbitmq
 
@@ -26,21 +29,3 @@ where conan
 ```
 
 ![Image alt](/media/config2.png)
-
-## Системный анализ базы данных
-
-### Сущности
-Менеджеры - выдает задания воркерам.
-Поля:
-- id
-- name
-- password
-- email
-
-Воркеры - выполняют задания.
-Поля:
-- id
-- name
-- password
-- email
-
